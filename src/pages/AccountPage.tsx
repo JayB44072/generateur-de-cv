@@ -5,7 +5,7 @@ import { useLang } from '../contexts/LanguageContext';
 import { supabase, CVDataRow, CVContent, defaultCVContent, SubscriptionTier } from '../lib/supabase';
 import { templates, getTemplateById } from '../data/templates';
 import CVRenderer from '../components/CVRenderer';
-import SubscriptionSwitcher from '../components/subscriptionSwitcher';
+import SubscriptionSwitcher from '../components/SubscriptionSwitcher';
 import PaymentModal from '../components/paymentModal';
 import PaymentNotification from '../components/paymentNotification';
 import { Subscription } from '../lib/supabase';
