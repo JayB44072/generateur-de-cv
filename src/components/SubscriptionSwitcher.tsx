@@ -3,8 +3,8 @@ import { Crown, Sparkles, Zap, Check, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LanguageContext';
 import { SubscriptionTier } from '../lib/supabase';
-import PaymentModal from './PaymentModal';
-import PaymentNotification from './PaymentNotification';
+import PaymentModal from './paymentModal';
+import PaymentNotification from './paymentNotification';
 import { Subscription } from '../lib/supabase';
 
 const TIER_INFO: Record<SubscriptionTier, { label: string; icon: React.ReactNode; color: string; bg: string; price: string }> = {
