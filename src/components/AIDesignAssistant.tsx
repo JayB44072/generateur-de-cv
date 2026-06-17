@@ -15,6 +15,10 @@ interface AIDesignAssistantProps {
   content: any;
 }
 
+const TEMPLATE_CATALOG = templates
+  .map(t => `- ${t.id} : ${t.nameFr} (${t.tier}) — ${t.descriptionFr}. Tags : ${t.tags.join(', ')}`)
+  .join('\n');
+
 async function askClaudeDesign(
   messages: Message[],
   userInput: string,
@@ -26,20 +30,26 @@ async function askClaudeDesign(
     return { text: "Clé API manquante dans les variables d'environnement.", suggestedTemplates: [] };
   }
 
-  const systemPrompt = `Tu es un expert en design de CV et identité visuelle professionnelle. 
-Tu aides les utilisateurs à choisir le meilleur modèle de CV et à personnaliser leur design.
-Tu t'appelles WhiteDukeIA, l'assistant design de WhiteDuke.
-Tu as accès à ces modèles de CV (id, nom, style, secteur recommandé) :
-GRATUITS : 1=Marine Classique (académique), 2=Minimaliste Stark (juridique), 3=Corporate Bicolonne (gestion), 4=Cadre Exécutif (direction), 5=Ardoise Urbaine (professionnel), 6=Vert Forêt (environnement), 7=Vague Teal (médical), 8=Pro Ambre (commerce), 9=Bleu Acier (ingénierie), 10=Bistre Chaleureux (artisanat), 14=Graphite Mono (IT), 15=Érudit Indigo (académique), 18=Crépuscule Violet (créatif), 20=Grille Tech (développeur), 24=Minuit Pro (cybersécurité), 26=Tranche Cobalt (finance), 29=Menthe Fraîche (santé).
-PREMIUM : 31=Tokyo Menthe (créatif/design), 32=Élégance Zurich (luxe), 34=Terracotta Warmth (artiste), 36=Vogue Éditorial (mode), 37=Minimal Nordique (design), 38=Mousse Kyoto (zen/nature), 40=Marine Riviera (luxe/marine), 43=Chic Parisien (mode), 45=Or Sahara (business), 47=Luxe Cramoisi (haut de gamme).
-ÉLITE : 33=Silicon Sombre (tech/IA), 35=Bauhaus Berlin (architecture), 39=Néon Cyberpunk (gaming), 42=Aurore Boréale (tech), 44=Quantique Sombre (recherche), 48=Obsidienne Pro (cyber), 49=Élite Émeraude (finance), 50=Ère Dorée (prestige).
+  const systemPrompt = `Tu es un assistant expert en design de CV et d'identité visuelle professionnelle nommé WhiteDukeIA.
+Tu aides les utilisateurs à choisir le meilleur modèle de CV d'après les modèles disponibles ci-dessous.
+Tu dois expliquer clairement pourquoi chaque modèle recommandé est pertinent : structure, style, type d'emploi, lisibilité, contraste et impression professionnelle.
+Si les informations sont insuffisantes, pose une question concise pour clarifier le secteur, le type de poste, le niveau d'expérience ou le style préféré de l'utilisateur.
+Tu peux proposer jusqu'à 3 modèles quand cela aide à comparer, mais explique toujours la préférence principale.
 
-Quand tu recommandes des modèles, retourne un JSON à la fin de ton message dans ce format exact :
-TEMPLATES:[31,32,37]
+Modèles disponibles :
+${TEMPLATE_CATALOG}
 
 Profil du candidat : ${content.personalInfo?.title || 'Non défini'} - ${content.personalInfo?.summary ? content.personalInfo.summary.substring(0, 100) + '...' : 'Pas de résumé'}
 
-Réponds en français, sois concis et enthousiaste. Donne des conseils visuels concrets. Maximum 3-4 phrases.`;
+Réponds en français.
+Fais une recommandation argumentée avec des conseils visuels concrets.
+Finis par un JSON exact au format : TEMPLATES:[31,32,37]
+Ne fournis aucune autre structure JSON ni aucun texte après cette balise.`;
+  
+  // Insister sur la longueur et la structure :
+  // - 4 à 6 phrases (réponse détaillée)
+  // - Structure attendue : 1) Recommandation principale, 2) Raisons détaillées (2-3 phrases), 3) Conseils visuels concrets (1-2 phrases), 4) Proposition d'action suivante (1 phrase)
+  // Toujours terminer par la balise TEMPLATES:[...]
 
   // Filtrer les messages pour s'assurer qu'aucun texte n'est vide
   const validHistory = messages.filter(m => m.text && m.text.trim() !== "");
@@ -59,20 +69,20 @@ Réponds en français, sois concis et enthousiaste. Donne des conseils visuels c
   ];
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: allContents,
-        generationConfig: { maxOutputTokens: 300, temperature: 0.7 },
+        generationConfig: { maxOutputTokens: 1200, temperature: 0.6, candidateCount: 1, topP: 0.95 },
       }),
     }
   );
   // Si Google bloque (429), on intercepte proprement sans crasher
     if (response.status === 429) {
       return { 
-        text: "⚠️ L'assistant WhiteDukeIA est très sollicité en ce moment. Veuillez rééssayer dans une minute.", 
+        text: "⚠️ L'assistant WhiteDukeIA est très sollicité en ce moment. Veuillez rééssayer dans quelques minutes.", 
         suggestedTemplates: [] 
       };
     }
@@ -87,7 +97,45 @@ Réponds en français, sois concis et enthousiaste. Donne des conseils visuels c
     ? templateMatch[1].split(',').map(Number).filter((n: number) => n > 0 && n <= 50)
     : undefined;
 
-  return { text: text.replace(/TEMPLATES:\[[0-9,]+\]/, '').trim(), suggestedTemplates };
+  let cleaned = text.replace(/TEMPLATES:\[[0-9,]+\]/, '').trim();
+
+  // Vérifier si la réponse est trop courte (moins de 4 phrases ou moins de 120 caractères)
+  const sentenceCount = cleaned.split(/[\.\!\?]\s+/).filter(s => s.trim().length > 0).length;
+  if (sentenceCount < 4 || cleaned.length < 120) {
+    // Faire une relance pour développer la réponse en français, en demandant 4-6 phrases structurées
+    const expandPrompt = `La réponse précédente est trop courte. Développe et reformule en 4 à 6 phrases structurées : 1) recommandation principale, 2-3) raisons détaillées (structure, lisibilité, adéquation au poste), 4) conseils visuels concrets, 5) action suivante. Termine par la même balise TEMPLATES:[...] (ne répète pas d'autres JSON). Voici la réponse actuelle : "${cleaned.replace(/\"/g, '\\"')}"`;
+
+    const followupContents = [
+      { role: 'user', parts: [{ text: systemPrompt }] },
+      { role: 'model', parts: [{ text: 'Veuillez développer la réponse précédente.' }] },
+      ...conversationHistory,
+      { role: 'user', parts: [{ text: userInput }] },
+      { role: 'user', parts: [{ text: expandPrompt }] },
+    ];
+
+    const resp2 = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: followupContents,
+          generationConfig: { maxOutputTokens: 1200, temperature: 0.5, candidateCount: 1, topP: 0.95 },
+        }),
+      }
+    );
+
+    if (resp2.ok) {
+      const d2 = await resp2.json();
+      const t2 = d2.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      const match2 = t2.match(/TEMPLATES:\[([0-9,]+)\]/);
+      const suggested2 = match2 ? match2[1].split(',').map(Number).filter((n: number) => n > 0 && n <= 50) : suggestedTemplates;
+      cleaned = t2.replace(/TEMPLATES:\[[0-9,]+\]/, '').trim();
+      return { text: cleaned, suggestedTemplates: suggested2 };
+    }
+  }
+
+  return { text: cleaned, suggestedTemplates };
 }
 
 const QUICK_QUESTIONS = [
