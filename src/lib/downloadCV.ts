@@ -39,6 +39,53 @@ async function waitForImages(element: HTMLElement): Promise<void> {
   );
 }
 
+/**....................................................................... */
+
+// Fonction pour convertir une image URL en DataURL Base64 locale (règle le problème CORS sur Mobile)
+async function convertImgToBase64(img: HTMLImageElement): Promise<void> {
+  if (!img.src || img.src.startsWith('data:')) return;
+
+  try {
+    // 🚀 Configuration de l'origine croisée AVANT le fetch pour éviter le blocage CORS Mobile
+    img.crossOrigin = 'anonymous'; 
+    
+    const res = await fetch(img.src, { mode: 'cors' });
+    const blob = await res.blob();
+    
+    return new Promise<void>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        img.src = reader.result as string; // Remplace l'URL externe par le Base64 local
+        resolve();
+      };
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn("Impossible de convertir l'image en Base64 (CORS) :", img.src, err);
+  }
+}
+
+async function prepareAndPrefixImages(element: HTMLElement): Promise<void> {
+  const imgs = Array.from(element.querySelectorAll('img'));
+  
+  // Convertit toutes les images distantes du CV en Base64 local
+  await Promise.all(imgs.map(img => convertImgToBase64(img)));
+
+  // Attend la confirmation finale du rendu par le navigateur
+  await Promise.all(
+    imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise<void>(resolve => {
+        img.addEventListener('load', () => resolve(), { once: true });
+        img.addEventListener('error', () => resolve(), { once: true });
+        setTimeout(() => resolve(), 3000); // Sécurité anti-blocage
+      });
+    })
+  );
+}
+
+/**........................................................................ */
+
 export async function downloadCVAsPDF(
   elementId: string,
   filename = 'mon-cv.pdf'
@@ -46,7 +93,10 @@ export async function downloadCVAsPDF(
   const element = document.getElementById(elementId);
   if (!element) throw new Error(`Element #${elementId} introuvable`);
 
-  await waitForImages(element);
+  // await waitForImages(element);
+
+  // 1. On nettoie et localise les images en Base64 avant toute capture
+  await prepareAndPrefixImages(element);
 
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
@@ -65,7 +115,8 @@ export async function downloadCVAsPDF(
   try {
     const htmlToImage = await import('html-to-image');
     dataUrl = await htmlToImage.toPng(element, {
-      pixelRatio: isMobile ? 2 : 3,
+      // 🚀 pixelRatio à 1.5 ou 2 max sur Mobile pour éviter le crash mémoire RAM de Chrome Mobile
+      pixelRatio: isMobile ? 1.5 : 3,
       backgroundColor: '#FFFFFF',
       width: element.scrollWidth,
       height: element.scrollHeight,
