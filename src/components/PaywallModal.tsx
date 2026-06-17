@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { X, Crown, Check, Sparkles, Lock } from 'lucide-react';
 import { useLang } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import PaymentModal from './PaymentModal';
-import PaymentNotification from './PaymentNotification';
+import PaymentModal from './paymentModal';
+import PaymentNotification from './paymentNotification';
 import { Subscription } from '../lib/supabase';
 
 export type PaywallReason = 'premium_template' | 'ai_feature' | 'download_premium' | 'custom_section';
