@@ -25,6 +25,10 @@ async function waitForImages(element: HTMLElement): Promise<void> {
   const imgs = Array.from(element.querySelectorAll('img'));
   await Promise.all(
     imgs.map(img => {
+      // Pour forcer le navigateur à accepter l'origine croisée (Supabase/Google)
+      if (!img.hasAttribute('crossorigin')) {
+        img.setAttribute('crossorigin', 'anonymous');
+      }
       if (img.complete && img.naturalWidth > 0) return Promise.resolve();
       return new Promise<void>(resolve => {
         img.addEventListener('load', () => resolve(), { once: true });
@@ -44,6 +48,10 @@ export async function downloadCVAsPDF(
 
   await waitForImages(element);
 
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+
   // L'aperçu est affiché avec `transform: scale(x)` pour le zoom (60%, 80%...).
   // On neutralise temporairement le transform pendant la capture pour avoir
   // des dimensions et un rendu fidèles à la taille réelle A4, puis on le restaure.
@@ -57,12 +65,14 @@ export async function downloadCVAsPDF(
   try {
     const htmlToImage = await import('html-to-image');
     dataUrl = await htmlToImage.toPng(element, {
-      pixelRatio: 3,
+      pixelRatio: isMobile ? 2 : 3,
       backgroundColor: '#FFFFFF',
       width: element.scrollWidth,
       height: element.scrollHeight,
       style: { transform: 'none' },
       skipFonts: false,
+      // Cache-busting pour s'assurer que les photos distantes ne bloquent pas le rendu SVG
+      cacheBust: true,
     });
   } finally {
     element.style.transform = originalTransform;
