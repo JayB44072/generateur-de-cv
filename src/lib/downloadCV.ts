@@ -90,43 +90,17 @@ const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 /**
- * Ouvre le PDF dans un nouvel onglet (iOS Safari ne supporte pas l'attribut
- * download sur les blobs, ce qui fait que pdf.save() ne télécharge rien).
- * Sur les autres plateformes on utilise pdf.save() classique.
+ * Sur iOS Safari, l'attribut `download` est ignoré → pdf.save() ouvre le blob
+ * dans le même onglet sans proposer d'enregistrement. On ouvre dans un nouvel
+ * onglet à la place : l'utilisateur peut ensuite utiliser le bouton partage iOS.
  */
 function savePDF(pdf: import('jspdf').jsPDF, filename: string): void {
   if (isIOS) {
-    // Ouvre le PDF directement dans Safari → l'utilisateur peut l'enregistrer
-    // via le bouton partage natif iOS
     const blobUrl = pdf.output('bloburl');
     window.open(blobUrl as unknown as string, '_blank');
   } else {
     pdf.save(filename);
   }
-}
-
-/**
- * Vérifie si une dataURL produite par html-to-image est blanche / vide
- * (problème connu sur Safari WebKit avec foreignObject SVG).
- */
-async function isImageBlank(dataUrl: string): Promise<boolean> {
-  return new Promise(resolve => {
-    const canvas = document.createElement('canvas');
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = Math.min(img.width, 100);
-      canvas.height = Math.min(img.height, 100);
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return resolve(false);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      // Si tous les pixels sont blancs ou transparents → image vide
-      const isBlank = Array.from(data).every((v, i) => i % 4 === 3 ? true : v === 255);
-      resolve(isBlank);
-    };
-    img.onerror = () => resolve(false);
-    img.src = dataUrl;
-  });
 }
 
 export async function downloadCVAsPDF(
@@ -136,44 +110,48 @@ export async function downloadCVAsPDF(
   const element = document.getElementById(elementId);
   if (!element) throw new Error(`Element #${elementId} introuvable`);
 
-  // 1. Localise les images distantes en Base64 (règle CORS mobile)
+  // Convertit les images distantes en Base64 pour éviter les blocages CORS mobile
   await prepareAndPrefixImages(element);
 
-  // Neutralise le transform de zoom pendant la capture pour avoir les vraies dimensions A4
-  const originalTransform = element.style.transform;
-  const originalTransition = element.style.transition;
-  element.style.transform = 'none';
-  element.style.transition = 'none';
-  void element.offsetHeight; // force reflow
+  const htmlToImage = await import('html-to-image');
 
-  let dataUrl: string;
-  try {
-    const htmlToImage = await import('html-to-image');
+  // Sur mobile :
+  //   - pixelRatio 1 pour éviter les crashs mémoire (canvas trop grand)
+  //   - skipFonts: true pour éviter les erreurs CORS lors de l'embedding des polices
+  // Sur desktop :
+  //   - pixelRatio 3 pour une qualité maximale
+  //   - skipFonts: false pour inclure les polices dans le SVG
+  const captureOptions = {
+    pixelRatio: isMobile ? 1 : 3,
+    backgroundColor: '#FFFFFF',
+    width: element.scrollWidth,
+    height: element.scrollHeight,
+    skipFonts: isMobile,
+    cacheBust: true,
+  };
 
-    const captureOptions = {
-      pixelRatio: isMobile ? 1.5 : 3,
-      backgroundColor: '#FFFFFF',
-      width: element.scrollWidth,
-      height: element.scrollHeight,
-      style: { transform: 'none' },
-      skipFonts: false,
-      cacheBust: true,
-    };
-
-    dataUrl = await htmlToImage.toPng(element, captureOptions);
-
-    // Sur Safari/WebKit, foreignObject SVG peut produire une image blanche.
-    // On relance une deuxième fois si c'est le cas (deuxième tentative suffit généralement).
-    if (await isImageBlank(dataUrl)) {
-      await new Promise(r => setTimeout(r, 200));
+  // html-to-image sérialise le DOM en SVG foreignObject puis demande au moteur
+  // natif du navigateur de le dessiner. Sur certains Chrome Android, le premier
+  // appel peut échouer à cause d'un race condition interne. On lance jusqu'à
+  // 3 tentatives avec un délai croissant avant de déclarer l'échec.
+  let dataUrl = '';
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
       dataUrl = await htmlToImage.toPng(element, captureOptions);
+      if (dataUrl && dataUrl.length > 5000) break; // image non vide → succès
+      // Image suspicieusement petite (probable canvas vide) → on réessaie
+      await new Promise(r => setTimeout(r, attempt * 150));
+    } catch (err) {
+      lastError = err;
+      await new Promise(r => setTimeout(r, attempt * 150));
     }
-  } finally {
-    element.style.transform = originalTransform;
-    element.style.transition = originalTransition;
   }
 
-  // Dimensions exactes de l'image capturée
+  if (!dataUrl || dataUrl.length < 5000) {
+    throw lastError ?? new Error('html-to-image a produit une image vide après 3 tentatives');
+  }
+
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
@@ -183,15 +161,10 @@ export async function downloadCVAsPDF(
 
   const { default: jsPDF } = await import('jspdf');
 
-  const A4_W = 210; // mm
-  const A4_H = 297; // mm
+  const A4_W = 210;
+  const A4_H = 297;
 
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-    compress: true,
-  });
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
   const imgW = A4_W;
   const imgH = (img.height / img.width) * A4_W;

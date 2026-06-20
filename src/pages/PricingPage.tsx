@@ -107,9 +107,9 @@ export default function PricingPage({ onNavigate, onAuthOpen }: PricingPageProps
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">{t.pricing.title}</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-lg">{t.pricing.subtitle}</p>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 text-center">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">{t.pricing.title}</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">{t.pricing.subtitle}</p>
           {user && purchasedTiers.length > 1 && (
             <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-full text-sm text-green-700 dark:text-green-400">
               <Check size={14} />
@@ -197,16 +197,17 @@ export default function PricingPage({ onNavigate, onAuthOpen }: PricingPageProps
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
             {lang === 'fr' ? 'Comparaison des fonctionnalités' : 'Feature comparison'}
           </h2>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-900 min-w-[480px]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-800">
-                  <th className="text-left px-6 py-4 text-gray-900 dark:text-white font-semibold">
+                  <th className="text-left px-4 sm:px-6 py-4 text-gray-900 dark:text-white font-semibold">
                     {lang === 'fr' ? 'Fonctionnalité' : 'Feature'}
                   </th>
-                  <th className="text-center px-4 py-4 text-gray-700 dark:text-gray-300">Gratuit</th>
-                  <th className="text-center px-4 py-4 text-blue-600">Premium</th>
-                  <th className="text-center px-4 py-4 text-orange-500">Élite IA</th>
+                  <th className="text-center px-3 sm:px-4 py-4 text-gray-700 dark:text-gray-300">Gratuit</th>
+                  <th className="text-center px-3 sm:px-4 py-4 text-blue-600">Premium</th>
+                  <th className="text-center px-3 sm:px-4 py-4 text-orange-500">Élite IA</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,9 +222,9 @@ export default function PricingPage({ onNavigate, onAuthOpen }: PricingPageProps
                   { fr: 'Support prioritaire', en: 'Priority support', free: false, premium: true, ai: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                    <td className="px-6 py-3 text-gray-700 dark:text-gray-300">{lang === 'fr' ? row.fr : row.en}</td>
+                    <td className="px-4 sm:px-6 py-3 text-gray-700 dark:text-gray-300">{lang === 'fr' ? row.fr : row.en}</td>
                     {[row.free, row.premium, row.ai].map((v, j) => (
-                      <td key={j} className="text-center px-4 py-3">
+                      <td key={j} className="text-center px-3 sm:px-4 py-3">
                         {v === true
                           ? <Check size={16} className={['text-gray-500', 'text-blue-500', 'text-orange-500'][j] + ' mx-auto'} />
                           : v === 'watermark'
@@ -235,6 +236,7 @@ export default function PricingPage({ onNavigate, onAuthOpen }: PricingPageProps
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
       </div>

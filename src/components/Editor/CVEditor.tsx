@@ -159,15 +159,11 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
       setPaywall({ open: true, reason: 'download_premium' });
       return;
     }
-    // Sur mobile, s'assurer que le preview est visible dans le DOM avant la capture
-    setMobileTab('preview');
     setDownloading(true);
     setDownloadError(null);
-    // Laisser un tick au navigateur pour monter le panel si nécessaire
-    await new Promise(r => setTimeout(r, 80));
     try {
       const safeName = cvTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'mon-cv';
-      await downloadCVAsPDF('cv-preview-print', `${safeName}.pdf`);
+      await downloadCVAsPDF('cv-print-hidden', `${safeName}.pdf`);
     } catch (err) {
       console.error('Erreur PDF', err);
       setDownloadError('Échec de la génération du PDF. Réessayez ou changez de navigateur.');
@@ -425,14 +421,8 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
-          {/* Les deux panels restent montés dans le DOM pour que cv-preview-print soit toujours accessible */}
-          <div className={`absolute inset-0 overflow-hidden ${mobileTab === 'edit' ? 'block' : 'hidden'}`}>
-            {FormPanel}
-          </div>
-          <div className={`absolute inset-0 overflow-hidden ${mobileTab === 'preview' ? 'block' : 'hidden'}`}>
-            {PreviewPanel}
-          </div>
+        <div className="flex-1 overflow-hidden">
+          {mobileTab === 'edit' ? FormPanel : PreviewPanel}
         </div>
       </div>
 
@@ -442,6 +432,25 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
         onSelectTemplate={handleTemplateChange}
         content={content}
       />
+
+      {/* Élément hors-écran dédié à la capture PDF — toujours dans le DOM,
+          sans transform ni clip, pour que html-to-image ait des dimensions A4 réelles */}
+      <div
+        id="cv-print-hidden"
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: 0,
+          width: '210mm',
+          minHeight: '297mm',
+          backgroundColor: '#fff',
+          zIndex: -1,
+          pointerEvents: 'none',
+        }}
+      >
+        <CVRenderer template={template} content={content} showWatermark={showWatermark} />
+      </div>
 
       {/* Paywall */}
       {paywall.open && (
