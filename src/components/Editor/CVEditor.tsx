@@ -159,15 +159,17 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
       setPaywall({ open: true, reason: 'download_premium' });
       return;
     }
+    // Sur mobile, s'assurer que le preview est visible dans le DOM avant la capture
+    setMobileTab('preview');
     setDownloading(true);
     setDownloadError(null);
+    // Laisser un tick au navigateur pour monter le panel si nécessaire
+    await new Promise(r => setTimeout(r, 80));
     try {
       const safeName = cvTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'mon-cv';
       await downloadCVAsPDF('cv-preview-print', `${safeName}.pdf`);
     } catch (err) {
       console.error('Erreur PDF', err);
-      // On n'utilise plus window.print() en fallback : ça imprimait toute la
-      // page (éditeur inclus) au lieu du CV seul. On affiche une erreur claire.
       setDownloadError('Échec de la génération du PDF. Réessayez ou changez de navigateur.');
       setTimeout(() => setDownloadError(null), 4000);
     } finally {
@@ -423,8 +425,14 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          {mobileTab === 'edit' ? FormPanel : PreviewPanel}
+        <div className="flex-1 overflow-hidden relative">
+          {/* Les deux panels restent montés dans le DOM pour que cv-preview-print soit toujours accessible */}
+          <div className={`absolute inset-0 overflow-hidden ${mobileTab === 'edit' ? 'block' : 'hidden'}`}>
+            {FormPanel}
+          </div>
+          <div className={`absolute inset-0 overflow-hidden ${mobileTab === 'preview' ? 'block' : 'hidden'}`}>
+            {PreviewPanel}
+          </div>
         </div>
       </div>
 

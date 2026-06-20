@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, ChevronDown, Palette, Layout, Wand2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Sparkles, X, Send, Palette, Layout } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { templates, TemplateConfig } from '../data/templates';
+import { templates } from '../data/templates';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -15,9 +15,10 @@ interface AIDesignAssistantProps {
   content: any;
 }
 
+// Compact template catalog to reduce prompt size (id:name(tier,primaryTag))
 const TEMPLATE_CATALOG = templates
-  .map(t => `- ${t.id} : ${t.nameFr} (${t.tier}) — ${t.descriptionFr}. Tags : ${t.tags.join(', ')}`)
-  .join('\n');
+  .map(t => `${t.id}:${t.nameFr}(${t.tier},${t.tags?.[0] || 'general'})`)
+  .join('; ');
 
 async function askClaudeDesign(
   messages: Message[],
@@ -45,86 +46,61 @@ Réponds en français.
 Fais une recommandation argumentée avec des conseils visuels concrets.
 Finis par un JSON exact au format : TEMPLATES:[31,32,37]
 Ne fournis aucune autre structure JSON ni aucun texte après cette balise.`;
-  
-  // Insister sur la longueur et la structure :
-  // - 4 à 6 phrases (réponse détaillée)
-  // - Structure attendue : 1) Recommandation principale, 2) Raisons détaillées (2-3 phrases), 3) Conseils visuels concrets (1-2 phrases), 4) Proposition d'action suivante (1 phrase)
-  // Toujours terminer par la balise TEMPLATES:[...]
 
-  // Filtrer les messages pour s'assurer qu'aucun texte n'est vide
-  const validHistory = messages.filter(m => m.text && m.text.trim() !== "");
-
-  // Construire l'historique de conversation pour Gemini
-  const conversationHistory = validHistory.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.text }],
-  }));
+  const validHistory = messages.filter(m => m.text && m.text.trim() !== '');
+  const conversationHistory = validHistory.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.text }] }));
 
   const allContents = [
-    // Le système prompt est injecté comme premier message utilisateur
     { role: 'user', parts: [{ text: systemPrompt }] },
     { role: 'model', parts: [{ text: 'Compris ! Je suis WhiteDukeIA, prêt à vous aider.' }] },
     ...conversationHistory,
     { role: 'user', parts: [{ text: userInput }] },
   ];
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
+  const doRequest = async (contents: any[], config = { maxOutputTokens: 1200, temperature: 0.6, candidateCount: 1, topP: 0.95 }) => {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: allContents,
-        generationConfig: { maxOutputTokens: 1200, temperature: 0.6, candidateCount: 1, topP: 0.95 },
-      }),
-    }
-  );
-  // Si Google bloque (429), on intercepte proprement sans crasher
-    if (response.status === 429) {
-      return { 
-        text: "⚠️ L'assistant WhiteDukeIA est très sollicité en ce moment. Veuillez rééssayer dans quelques minutes.", 
-        suggestedTemplates: [] 
-      };
-    }
+      body: JSON.stringify({ contents, generationConfig: config }),
+    });
+    return res;
+  };
+
+  const response = await doRequest(allContents);
+
+  if (response.status === 429) {
+    return { text: "⚠️ L'assistant WhiteDukeIA est très sollicité en ce moment. Veuillez rééssayer dans quelques minutes.", suggestedTemplates: [] };
+  }
 
   if (!response.ok) throw new Error('API Gemini error');
   const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
-  // Extraire les suggestions de templates (même logique qu'avant)
   const templateMatch = text.match(/TEMPLATES:\[([0-9,]+)\]/);
-  const suggestedTemplates = templateMatch
-    ? templateMatch[1].split(',').map(Number).filter((n: number) => n > 0 && n <= 50)
-    : undefined;
-
+  let suggestedTemplates = templateMatch ? templateMatch[1].split(',').map(Number).filter((n: number) => n > 0 && n <= 50) : undefined;
   let cleaned = text.replace(/TEMPLATES:\[[0-9,]+\]/, '').trim();
 
-  // Vérifier si la réponse est trop courte (moins de 4 phrases ou moins de 120 caractères)
+  // Si aucune balise TEMPLATES, essayer d'extraire des noms de modèles présents dans le texte
+  if (!suggestedTemplates) {
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const foundIds: number[] = [];
+    const lower = cleaned.toLowerCase();
+    for (const t of templates) {
+      const nameFr = t.nameFr.toLowerCase();
+      const nameEn = t.name.toLowerCase();
+      if (lower.includes(nameFr) || lower.includes(nameEn) || new RegExp(`\\b${escapeRegex(nameFr)}\\b`, 'i').test(cleaned) || new RegExp(`\\b${escapeRegex(nameEn)}\\b`, 'i').test(cleaned)) {
+        if (!foundIds.includes(t.id)) foundIds.push(t.id);
+      }
+      if (foundIds.length >= 3) break;
+    }
+    if (foundIds.length > 0) suggestedTemplates = foundIds;
+  }
+
   const sentenceCount = cleaned.split(/[\.\!\?]\s+/).filter(s => s.trim().length > 0).length;
   if (sentenceCount < 4 || cleaned.length < 120) {
-    // Faire une relance pour développer la réponse en français, en demandant 4-6 phrases structurées
     const expandPrompt = `La réponse précédente est trop courte. Développe et reformule en 4 à 6 phrases structurées : 1) recommandation principale, 2-3) raisons détaillées (structure, lisibilité, adéquation au poste), 4) conseils visuels concrets, 5) action suivante. Termine par la même balise TEMPLATES:[...] (ne répète pas d'autres JSON). Voici la réponse actuelle : "${cleaned.replace(/\"/g, '\\"')}"`;
-
-    const followupContents = [
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: 'Veuillez développer la réponse précédente.' }] },
-      ...conversationHistory,
-      { role: 'user', parts: [{ text: userInput }] },
-      { role: 'user', parts: [{ text: expandPrompt }] },
-    ];
-
-    const resp2 = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: followupContents,
-          generationConfig: { maxOutputTokens: 1200, temperature: 0.5, candidateCount: 1, topP: 0.95 },
-        }),
-      }
-    );
-
+    const followup = [ { role: 'user', parts: [{ text: systemPrompt }] }, ...conversationHistory, { role: 'user', parts: [{ text: userInput }] }, { role: 'user', parts: [{ text: expandPrompt }] } ];
+    const resp2 = await doRequest(followup, { maxOutputTokens: 1200, temperature: 0.5, candidateCount: 1, topP: 0.95 });
     if (resp2.ok) {
       const d2 = await resp2.json();
       const t2 = d2.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
@@ -135,15 +111,36 @@ Ne fournis aucune autre structure JSON ni aucun texte après cette balise.`;
     }
   }
 
+  if (!templateMatch) {
+    const requestTemplatesPrompt = `La réponse précédente n'incluait pas la balise TEMPLATES. En français, renvoie la recommandation complète (4-6 phrases structurées) et TERMINE par la seule balise TEMPLATES:[id1,id2,...] correspondant aux modèles recommandés.`;
+    const followup2 = [ { role: 'user', parts: [{ text: systemPrompt }] }, ...conversationHistory, { role: 'user', parts: [{ text: userInput }] }, { role: 'user', parts: [{ text: requestTemplatesPrompt }] } ];
+    const respT = await doRequest(followup2, { maxOutputTokens: 800, temperature: 0.5, candidateCount: 1, topP: 0.9 });
+    if (respT.ok) {
+      const dt = await respT.json();
+      const tt = dt.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      const matchT = tt.match(/TEMPLATES:\[([0-9,]+)\]/);
+      const suggestedT = matchT ? matchT[1].split(',').map(Number).filter((n: number) => n > 0 && n <= 50) : undefined;
+      cleaned = tt.replace(/TEMPLATES:\[[0-9,]+\]/, '').trim();
+      return { text: cleaned, suggestedTemplates: suggestedT };
+    }
+  }
+
+  if (!/[\.\!\?]\s*$/.test(cleaned)) {
+    const finishPrompt = `La réponse précédente semble incomplète. Termine correctement la phrase finale et fournis la recommandation complète en 4-6 phrases, puis la balise TEMPLATES:[...]`;
+    const followup3 = [ { role: 'user', parts: [{ text: systemPrompt }] }, ...conversationHistory, { role: 'user', parts: [{ text: userInput }] }, { role: 'user', parts: [{ text: finishPrompt }] } ];
+    const respF = await doRequest(followup3, { maxOutputTokens: 600, temperature: 0.4, candidateCount: 1, topP: 0.9 });
+    if (respF.ok) {
+      const df = await respF.json();
+      const tf = df.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      const matchF = tf.match(/TEMPLATES:\[([0-9,]+)\]/);
+      const suggestedF = matchF ? matchF[1].split(',').map(Number).filter((n: number) => n > 0 && n <= 50) : suggestedTemplates;
+      cleaned = tf.replace(/TEMPLATES:\[[0-9,]+\]/, '').trim();
+      return { text: cleaned, suggestedTemplates: suggestedF };
+    }
+  }
+
   return { text: cleaned, suggestedTemplates };
 }
-
-const QUICK_QUESTIONS = [
-  { label: '🎨 Quel modèle pour mon secteur ?', q: 'Recommande-moi le meilleur modèle pour mon secteur et mon profil.' },
-  { label: '⭐ Modèles premium ?', q: 'Quels sont les meilleurs modèles premium et élite ?' },
-  { label: '🏆 CV minimaliste moderne ?', q: 'Je veux un CV minimaliste et moderne, que recommandes-tu ?' },
-  { label: '🚀 CV créatif impactant ?', q: 'Je veux un CV très créatif et qui sort du lot.' },
-];
 
 export default function AIDesignAssistant({ currentTemplateId, onSelectTemplate, content }: AIDesignAssistantProps) {
   const { profile } = useAuth();
@@ -177,12 +174,19 @@ export default function AIDesignAssistant({ currentTemplateId, onSelectTemplate,
         suggestedTemplates: result.suggestedTemplates,
       };
       setMessages(prev => [...prev, assistantMsg]);
-    } catch {
+    } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', text: '❌ Erreur de connexion. Réessayez dans un instant.' }]);
     } finally {
       setLoading(false);
     }
   };
+
+  const QUICK_QUESTIONS = [
+    { label: '🎨 Quel modèle pour mon secteur ?', q: 'Recommande-moi le meilleur modèle pour mon secteur et mon profil.' },
+    { label: '⭐ Modèles premium ?', q: 'Quels sont les meilleurs modèles premium et élite ?' },
+    { label: '🏆 CV minimaliste moderne ?', q: 'Je veux un CV minimaliste et moderne, que recommandes-tu ?' },
+    { label: '🚀 CV créatif impactant ?', q: 'Je veux un CV très créatif et qui sort du lot.' },
+  ];
 
   const currentTpl = templates.find(t => t.id === currentTemplateId);
 
@@ -200,17 +204,7 @@ export default function AIDesignAssistant({ currentTemplateId, onSelectTemplate,
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col"
-      style={{
-        width: 340, height: 480,
-        background: 'white',
-        borderRadius: 20,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-        border: '1px solid rgba(124,58,237,0.2)',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header */}
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col" style={{ width: 340, height: 480, background: 'white', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid rgba(124,58,237,0.2)', overflow: 'hidden' }}>
       <div style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)' }} className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-white" />
@@ -221,7 +215,6 @@ export default function AIDesignAssistant({ currentTemplateId, onSelectTemplate,
         </button>
       </div>
 
-      {/* Current template badge */}
       {currentTpl && (
         <div className="px-3 py-2 flex items-center gap-2 bg-purple-50 border-b border-purple-100">
           <Layout size={12} className="text-purple-600" />
@@ -230,42 +223,21 @@ export default function AIDesignAssistant({ currentTemplateId, onSelectTemplate,
         </div>
       )}
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div style={{
-              maxWidth: '88%',
-              backgroundColor: msg.role === 'user' ? '#7C3AED' : '#F3F4F6',
-              color: msg.role === 'user' ? '#FFF' : '#111827',
-              borderRadius: msg.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-              padding: '8px 12px',
-              fontSize: 12,
-              lineHeight: 1.55,
-            }}>
+            <div style={{ maxWidth: '88%', backgroundColor: msg.role === 'user' ? '#7C3AED' : '#F3F4F6', color: msg.role === 'user' ? '#FFF' : '#111827', borderRadius: msg.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', padding: '8px 12px', fontSize: 12, lineHeight: 1.55 }}>
               {msg.text}
 
-              {/* Suggested templates */}
               {msg.suggestedTemplates && msg.suggestedTemplates.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {msg.suggestedTemplates.map(id => {
                     const tpl = templates.find(t => t.id === id);
                     if (!tpl) return null;
                     return (
-                      <button
-                        key={id}
-                        onClick={() => onSelectTemplate(id)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all hover:scale-105"
-                        style={{
-                          backgroundColor: tpl.primaryColor,
-                          color: '#FFF',
-                          border: currentTemplateId === id ? '2px solid #FFF' : '2px solid transparent',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                        }}
-                      >
+                      <button key={id} onClick={() => onSelectTemplate(id)} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all hover:scale-105" style={{ backgroundColor: tpl.primaryColor, color: '#FFF', border: currentTemplateId === id ? '2px solid #FFF' : '2px solid transparent', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
                         <Palette size={10} />
-                        {tpl.nameFr}
-                        {currentTemplateId === id && ' ✓'}
+                        {tpl.nameFr}{currentTemplateId === id && ' ✓'}
                       </button>
                     );
                   })}
@@ -287,45 +259,23 @@ export default function AIDesignAssistant({ currentTemplateId, onSelectTemplate,
         <div ref={bottomRef} />
       </div>
 
-      {/* Quick questions */}
       {messages.length <= 1 && (
         <div className="px-3 py-2 flex gap-1.5 overflow-x-auto scrollbar-hide border-t border-gray-100">
           {QUICK_QUESTIONS.map((q, i) => (
-            <button
-              key={i}
-              onClick={() => sendMessage(q.q)}
-              className="shrink-0 px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors border border-purple-200"
-            >
+            <button key={i} onClick={() => sendMessage(q.q)} className="shrink-0 px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors border border-purple-200">
               {q.label}
             </button>
           ))}
         </div>
       )}
 
-      {/* Input */}
       <div className="px-3 py-2 border-t border-gray-100 flex gap-2 items-center">
         {!canUseAI ? (
-          <div className="flex-1 text-center">
-            <span className="text-xs text-gray-500">🔒 </span>
-            <span className="text-xs text-purple-600 font-medium">Assistant IA — Forfait IA requis</span>
-          </div>
+          <div className="flex-1 text-center"><span className="text-xs text-gray-500">🔒 </span><span className="text-xs text-purple-600 font-medium">Assistant IA — Forfait IA requis</span></div>
         ) : (
           <>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
-              placeholder="Décrivez votre style souhaité…"
-              disabled={loading}
-              className="flex-1 px-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={loading || !input.trim()}
-              className="p-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white transition-colors"
-            >
-              <Send size={13} />
-            </button>
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)} placeholder="Décrivez votre style souhaité…" disabled={loading} className="flex-1 px-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent" />
+            <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()} className="p-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white transition-colors"><Send size={13} /></button>
           </>
         )}
       </div>

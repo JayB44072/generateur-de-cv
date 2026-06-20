@@ -86,6 +86,49 @@ async function prepareAndPrefixImages(element: HTMLElement): Promise<void> {
 
 /**........................................................................ */
 
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+/**
+ * Ouvre le PDF dans un nouvel onglet (iOS Safari ne supporte pas l'attribut
+ * download sur les blobs, ce qui fait que pdf.save() ne télécharge rien).
+ * Sur les autres plateformes on utilise pdf.save() classique.
+ */
+function savePDF(pdf: import('jspdf').jsPDF, filename: string): void {
+  if (isIOS) {
+    // Ouvre le PDF directement dans Safari → l'utilisateur peut l'enregistrer
+    // via le bouton partage natif iOS
+    const blobUrl = pdf.output('bloburl');
+    window.open(blobUrl as unknown as string, '_blank');
+  } else {
+    pdf.save(filename);
+  }
+}
+
+/**
+ * Vérifie si une dataURL produite par html-to-image est blanche / vide
+ * (problème connu sur Safari WebKit avec foreignObject SVG).
+ */
+async function isImageBlank(dataUrl: string): Promise<boolean> {
+  return new Promise(resolve => {
+    const canvas = document.createElement('canvas');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = Math.min(img.width, 100);
+      canvas.height = Math.min(img.height, 100);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return resolve(false);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      // Si tous les pixels sont blancs ou transparents → image vide
+      const isBlank = Array.from(data).every((v, i) => i % 4 === 3 ? true : v === 255);
+      resolve(isBlank);
+    };
+    img.onerror = () => resolve(false);
+    img.src = dataUrl;
+  });
+}
+
 export async function downloadCVAsPDF(
   elementId: string,
   filename = 'mon-cv.pdf'
@@ -93,18 +136,10 @@ export async function downloadCVAsPDF(
   const element = document.getElementById(elementId);
   if (!element) throw new Error(`Element #${elementId} introuvable`);
 
-  // await waitForImages(element);
-
-  // 1. On nettoie et localise les images en Base64 avant toute capture
+  // 1. Localise les images distantes en Base64 (règle CORS mobile)
   await prepareAndPrefixImages(element);
 
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
-
-  // L'aperçu est affiché avec `transform: scale(x)` pour le zoom (60%, 80%...).
-  // On neutralise temporairement le transform pendant la capture pour avoir
-  // des dimensions et un rendu fidèles à la taille réelle A4, puis on le restaure.
+  // Neutralise le transform de zoom pendant la capture pour avoir les vraies dimensions A4
   const originalTransform = element.style.transform;
   const originalTransition = element.style.transition;
   element.style.transform = 'none';
@@ -114,23 +149,31 @@ export async function downloadCVAsPDF(
   let dataUrl: string;
   try {
     const htmlToImage = await import('html-to-image');
-    dataUrl = await htmlToImage.toPng(element, {
-      // 🚀 pixelRatio à 1.5 ou 2 max sur Mobile pour éviter le crash mémoire RAM de Chrome Mobile
+
+    const captureOptions = {
       pixelRatio: isMobile ? 1.5 : 3,
       backgroundColor: '#FFFFFF',
       width: element.scrollWidth,
       height: element.scrollHeight,
       style: { transform: 'none' },
       skipFonts: false,
-      // Cache-busting pour s'assurer que les photos distantes ne bloquent pas le rendu SVG
       cacheBust: true,
-    });
+    };
+
+    dataUrl = await htmlToImage.toPng(element, captureOptions);
+
+    // Sur Safari/WebKit, foreignObject SVG peut produire une image blanche.
+    // On relance une deuxième fois si c'est le cas (deuxième tentative suffit généralement).
+    if (await isImageBlank(dataUrl)) {
+      await new Promise(r => setTimeout(r, 200));
+      dataUrl = await htmlToImage.toPng(element, captureOptions);
+    }
   } finally {
     element.style.transform = originalTransform;
     element.style.transition = originalTransition;
   }
 
-  // Charger le PNG résultant pour connaître ses dimensions exactes
+  // Dimensions exactes de l'image capturée
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
@@ -164,5 +207,5 @@ export async function downloadCVAsPDF(
     pdf.addImage(dataUrl, 'PNG', 0, 0, imgW, imgH);
   }
 
-  pdf.save(filename);
+  savePDF(pdf, filename);
 }
