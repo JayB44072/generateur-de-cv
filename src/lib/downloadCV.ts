@@ -115,18 +115,19 @@ export async function downloadCVAsPDF(
 
   const htmlToImage = await import('html-to-image');
 
-  // Sur mobile :
-  //   - pixelRatio 1 pour éviter les crashs mémoire (canvas trop grand)
-  //   - skipFonts: true pour éviter les erreurs CORS lors de l'embedding des polices
-  // Sur desktop :
-  //   - pixelRatio 3 pour une qualité maximale
-  //   - skipFonts: false pour inclure les polices dans le SVG
+  // skipFonts: true sur TOUTES les plateformes.
+  // L'app charge Inter/Playfair/Fira Code depuis fonts.gstatic.com (Google Fonts).
+  // Quand skipFonts est false, html-to-image tente de fetcher ces fichiers en JS
+  // pour les encoder en base64 dans le SVG. Ce fetch échoue silencieusement
+  // (CORS différent entre <link> CSS et fetch() JS) → SVG rendu entièrement blanc.
+  // Avec skipFonts: true, le navigateur utilise les polices système déjà chargées
+  // dans la page (Inter est déjà présent via le <link> du <head>) → rendu correct.
   const captureOptions = {
     pixelRatio: isMobile ? 1 : 3,
     backgroundColor: '#FFFFFF',
     width: element.scrollWidth,
     height: element.scrollHeight,
-    skipFonts: isMobile,
+    skipFonts: true,
     cacheBust: true,
   };
 

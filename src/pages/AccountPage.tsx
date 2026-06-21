@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { FileText, Download, Trash2, Plus, Edit3, Crown, Sparkles, User, Mail, Lock, Check, RefreshCw, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import { downloadCVAsPDF } from '../lib/downloadCV';
+import { FileText, Download, Trash2, Plus, Edit3, Crown, Sparkles, Lock, Check, RefreshCw, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LanguageContext';
 import { supabase, CVDataRow, CVContent, defaultCVContent, SubscriptionTier } from '../lib/supabase';
@@ -29,6 +31,7 @@ export default function AccountPage({ onNavigate }: AccountPageProps) {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [deletingCv, setDeletingCv] = useState<string | null>(null);
+  const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
   const [payModal, setPayModal] = useState<{ open: boolean; tier: 'premium' | 'ai' }>({ open: false, tier: 'premium' });
   const [notification, setNotification] = useState<Subscription | null>(null);
 
@@ -70,38 +73,48 @@ export default function AccountPage({ onNavigate }: AccountPageProps) {
     setDeletingCv(null);
   };
 
-  const handleDownloadCV = (cv: CVDataRow) => {
+  const handleDownloadCV = async (cv: CVDataRow) => {
     const template = getTemplateById(cv.template_id) ?? templates[0];
-    const contentDiv = document.createElement('div');
-    contentDiv.id = 'cv-download-temp';
-    contentDiv.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;min-height:297mm;background:white;';
-    document.body.appendChild(contentDiv);
-
     const showWatermark = profile?.subscription_tier === 'free' && template.tier !== 'free';
 
-    // Use ReactDOM to render (simpler: just use window.print in editor context)
-    // For direct download from account page, we'll render inline
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${cv.cv_title}</title>
-          <style>
-            @page { margin: 0; size: A4; }
-            body { margin: 0; padding: 0; background: white; }
-            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
-            .cv-container { width: 210mm; min-height: 297mm; background: white; box-sizing: border-box; }
-          </style>
-        </head>
-        <body>
-          <div class="cv-container" id="cv-content"></div>
-          <script>window.onload = () => { window.print(); }</script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+    setDownloadingCvId(cv.id);
+
+    // Crée un div temporaire dans le DOM (même stratégie que l'éditeur :
+    // overflow:hidden + width/height 0 pour forcer le rendu sans afficher)
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('aria-hidden', 'true');
+    wrapper.style.cssText = 'position:absolute;top:0;left:0;opacity:0;pointer-events:none;z-index:-1;';
+
+    const printEl = document.createElement('div');
+    printEl.id = 'cv-account-print';
+    printEl.style.cssText = 'width:210mm;min-height:297mm;background:#fff;';
+
+    wrapper.appendChild(printEl);
+    document.body.appendChild(wrapper);
+
+    // Monte le CVRenderer React dans cet élément
+    const root = createRoot(printEl);
+    root.render(
+      <CVRenderer
+        template={template}
+        content={cv.cv_content as CVContent}
+        showWatermark={showWatermark}
+      />
+    );
+
+    // Laisse React finir le rendu et le navigateur peindre
+    await new Promise(r => setTimeout(r, 400));
+
+    try {
+      const safeName = cv.cv_title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'mon-cv';
+      await downloadCVAsPDF('cv-account-print', `${safeName}.pdf`);
+    } catch (err) {
+      console.error('Erreur PDF compte', err);
+      alert(lang === 'fr' ? 'Échec de la génération du PDF. Réessayez.' : 'PDF generation failed. Please retry.');
+    } finally {
+      root.unmount();
+      document.body.removeChild(wrapper);
+      setDownloadingCvId(null);
     }
   };
 
@@ -250,10 +263,13 @@ export default function AccountPage({ onNavigate }: AccountPageProps) {
                           {canAccess && (
                             <button
                               onClick={() => handleDownloadCV(cv)}
-                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-green-600 transition-colors"
+                              disabled={downloadingCvId === cv.id}
+                              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-green-600 transition-colors disabled:opacity-50"
                               title={lang === 'fr' ? 'Télécharger PDF' : 'Download PDF'}
                             >
-                              <Download size={18} />
+                              {downloadingCvId === cv.id
+                                ? <Loader2 size={18} className="animate-spin" />
+                                : <Download size={18} />}
                             </button>
                           )}
                           <button

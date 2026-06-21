@@ -433,23 +433,27 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
         content={content}
       />
 
-      {/* Élément hors-écran dédié à la capture PDF — toujours dans le DOM,
-          sans transform ni clip, pour que html-to-image ait des dimensions A4 réelles */}
+      {/* Élément de capture PDF — toujours dans le DOM, opacity:0 le rend invisible
+          sans le clipper (contrairement à overflow:hidden ou display:none qui cassent
+          scrollWidth/scrollHeight et getBoundingClientRect utilisés par html-to-image).
+          position:absolute + zIndex:-1 l'empêche d'interagir avec l'UI. */}
       <div
-        id="cv-print-hidden"
         aria-hidden="true"
         style={{
-          position: 'fixed',
-          left: '-9999px',
+          position: 'absolute',
           top: 0,
-          width: '210mm',
-          minHeight: '297mm',
-          backgroundColor: '#fff',
-          zIndex: -1,
+          left: 0,
+          opacity: 0,
           pointerEvents: 'none',
+          zIndex: -1,
         }}
       >
-        <CVRenderer template={template} content={content} showWatermark={showWatermark} />
+        <div
+          id="cv-print-hidden"
+          style={{ width: '210mm', minHeight: '297mm', backgroundColor: '#fff' }}
+        >
+          <CVRenderer template={template} content={content} showWatermark={showWatermark} />
+        </div>
       </div>
 
       {/* Paywall */}
