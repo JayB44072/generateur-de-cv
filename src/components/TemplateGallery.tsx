@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Crown, Search, Star, Sparkles, CheckCircle2 } from 'lucide-react';
 import { templates, TemplateConfig, TemplateTier } from '../data/templates';
 import { useLang } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PaywallModal, { PaywallReason } from './PaywallModal';
 import { defaultCVContent } from '../lib/supabase';
+import CVRenderer from './CVRenderer';
 
 interface TemplateGalleryProps {
   selectedId: number;
@@ -25,139 +26,65 @@ const tierLabel: Record<TemplateTier, { bg: string; text: string; label: string 
   elite: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', label: 'Élite IA' },
 };
 
-function TemplateMiniPreview({ template }: { template: TemplateConfig }) {
-  const isDark = template.bgColor === '#0F172A' || template.bgColor === '#020617' || template.bgColor === '#0A0F1A' || template.bgColor === '#0F0F23';
+// Contenu de démonstration enrichi pour que les aperçus reflètent le vrai rendu
+const previewContent = {
+  ...defaultCVContent,
+  profilePhoto: '',
+  personalInfo: {
+    firstName: 'Sophie',
+    lastName: 'Martin',
+    title: 'Responsable Marketing Digital',
+    email: 'sophie.martin@email.com',
+    phone: '+33 6 12 34 56 78',
+    address: 'Paris, France',
+    website: 'sophiemartin.fr',
+    linkedin: 'linkedin.com/in/sophiemartin',
+    summary: 'Professionnelle créative avec 6 ans d\'expérience en marketing digital, spécialisée dans la stratégie de contenu et l\'acquisition client.',
+  },
+  experiences: [
+    { id: '1', position: 'Responsable Marketing', company: 'Agence Créative', location: 'Paris', startDate: '2021', endDate: '', current: true, description: 'Pilotage de campagnes digitales multi-canaux.' },
+    { id: '2', position: 'Chargée de Communication', company: 'StartupTech', location: 'Lyon', startDate: '2018', endDate: '2021', current: false, description: 'Gestion des réseaux sociaux et création de contenu.' },
+  ],
+  educations: [
+    { id: '1', degree: 'Master Marketing Digital', field: 'Communication', institution: 'Université Paris-Saclay', location: 'Paris', startDate: '2016', endDate: '2018', current: false, description: '' },
+    { id: '2', degree: 'Licence Info-Com', field: 'Médias', institution: 'Université Lyon 2', location: 'Lyon', startDate: '2013', endDate: '2016', current: false, description: '' },
+  ],
+  skills: [
+    { id: '1', name: 'Marketing Digital', level: 5, category: 'Métier' },
+    { id: '2', name: 'Adobe Creative Suite', level: 4, category: 'Outils' },
+    { id: '3', name: 'SEO / SEA', level: 4, category: 'Technique' },
+    { id: '4', name: 'Gestion de projet', level: 5, category: 'Gestion' },
+  ],
+  languages: [
+    { id: '1', name: 'Français', level: 'Native' },
+    { id: '2', name: 'Anglais', level: 'C1' },
+    { id: '3', name: 'Espagnol', level: 'B2' },
+  ],
+  customSections: [],
+};
 
-  if (template.layout === 'sidebar-left' || template.layout === 'sidebar-right') {
-    return (
-      <div className="w-full h-full flex" style={{ backgroundColor: template.bgColor }}>
-        {template.layout === 'sidebar-left' && (
-          <div className="w-2/5 h-full p-2 space-y-1.5" style={{ backgroundColor: template.primaryColor }}>
-            <div className="w-8 h-8 rounded-full bg-white/30 mx-auto mt-1" />
-            <div className="h-1.5 bg-white/40 rounded mx-1" />
-            <div className="h-1 bg-white/25 rounded mx-1" />
-            <div className="h-1 bg-white/25 rounded mx-1 w-3/4" />
-            <div className="mt-2 space-y-1">
-              <div className="h-1 bg-white/20 rounded mx-1" />
-              <div className="w-full h-0.5 bg-white/20 rounded mx-1" />
-              <div className="h-1 bg-white/20 rounded mx-1 w-4/5" />
-              <div className="w-4/5 h-0.5 bg-white/20 rounded mx-1" />
-            </div>
-          </div>
-        )}
-        <div className="flex-1 p-2 space-y-1.5">
-          <div className="h-1.5 rounded" style={{ backgroundColor: template.accentColor + '90', width: '60%' }} />
-          <div className="h-1 rounded bg-gray-300/50" style={{ width: '80%' }} />
-          <div className="space-y-1 mt-2">
-            {[90, 70, 80].map((w, i) => (
-              <div key={i} className="h-1 rounded" style={{ backgroundColor: isDark ? '#334155' : '#E5E7EB', width: `${w}%` }} />
-            ))}
-          </div>
-          <div className="mt-2 space-y-0.5">
-            <div className="h-0.5 rounded" style={{ backgroundColor: template.accentColor + '60', width: '40%' }} />
-            <div className="h-1 rounded" style={{ backgroundColor: isDark ? '#334155' : '#E5E7EB', width: '90%' }} />
-            <div className="h-1 rounded" style={{ backgroundColor: isDark ? '#334155' : '#E5E7EB', width: '75%' }} />
-          </div>
-        </div>
-        {template.layout === 'sidebar-right' && (
-          <div className="w-2/5 h-full p-2 space-y-1.5" style={{ backgroundColor: template.secondaryColor }}>
-            <div className="h-1.5 bg-gray-400/30 rounded" />
-            <div className="h-1 bg-gray-300/30 rounded w-3/4" />
-            <div className="mt-2 space-y-1">
-              {[80, 60, 70, 50].map((w, i) => (
-                <div key={i}>
-                  <div className="h-0.5 rounded mb-0.5" style={{ backgroundColor: isDark ? '#475569' : '#D1D5DB', width: `${w}%` }} />
-                  <div className="w-full h-0.5 rounded" style={{ backgroundColor: template.accentColor + '60' }} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+// Rendu réel du CV à l'échelle de la carte — reflète exactement le vrai résultat PDF
+const TemplateMiniPreview = memo(function TemplateMiniPreview({ template }: { template: TemplateConfig }) {
+  // L'élément CV fait 210mm ≈ 794px. La carte fait ~180px de large → scale ≈ 0.226
+  const CV_W = 794;
+  const CV_H = 1123;
+  const SCALE = 0.226;
 
-  if (template.layout === 'two-col') {
-    return (
-      <div className="w-full h-full" style={{ backgroundColor: template.bgColor }}>
-        <div className="h-1/4 px-2 pt-2 flex items-center gap-2" style={{ backgroundColor: template.primaryColor }}>
-          <div>
-            <div className="h-2 w-20 bg-white/80 rounded" />
-            <div className="h-1 w-14 bg-white/50 rounded mt-0.5" />
-          </div>
-        </div>
-        <div className="flex h-3/4">
-          <div className="w-2/5 p-1.5 space-y-1" style={{ backgroundColor: template.secondaryColor }}>
-            {[60, 80, 50, 70].map((w, i) => (
-              <div key={i} className="h-1 rounded" style={{ backgroundColor: template.accentColor + '50', width: `${w}%` }} />
-            ))}
-          </div>
-          <div className="flex-1 p-1.5 space-y-1">
-            {[90, 70, 85, 60].map((w, i) => (
-              <div key={i} className="h-1 rounded" style={{ backgroundColor: isDark ? '#334155' : '#D1D5DB', width: `${w}%` }} />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (template.layout === 'asymmetric' || template.layout === 'editorial') {
-    return (
-      <div className="w-full h-full" style={{ backgroundColor: template.bgColor }}>
-        <div className="m-1.5 p-2 rounded-xl" style={{ backgroundColor: template.primaryColor }}>
-          <div className="h-2 w-24 bg-white/80 rounded mb-1" />
-          <div className="h-1 w-16 bg-white/50 rounded" />
-          <div className="flex gap-1.5 mt-1">
-            {[40, 50, 35].map((w, i) => (
-              <div key={i} className="h-0.5 bg-white/40 rounded" style={{ width: `${w}px` }} />
-            ))}
-          </div>
-        </div>
-        <div className="flex gap-1 px-1.5 pb-1.5">
-          <div className="flex-1 space-y-1 p-1.5 rounded-xl" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}>
-            <div className="h-1 rounded" style={{ backgroundColor: template.accentColor + '80', width: '60%' }} />
-            {[80, 65, 75].map((w, i) => (
-              <div key={i} className="h-0.5 rounded" style={{ backgroundColor: isDark ? '#475569' : '#D1D5DB', width: `${w}%` }} />
-            ))}
-          </div>
-          <div className="w-1/3 space-y-1 p-1.5 rounded-xl" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}>
-            <div className="h-1 rounded" style={{ backgroundColor: template.accentColor + '80', width: '70%' }} />
-            {[90, 70, 80, 60].map((w, i) => (
-              <div key={i} className="h-0.5 rounded" style={{ backgroundColor: isDark ? '#475569' : '#D1D5DB', width: `${w}%` }} />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Default: single column
   return (
-    <div className="w-full h-full" style={{ backgroundColor: template.bgColor }}>
-      <div className="h-1/4 px-3 flex flex-col justify-center" style={{ backgroundColor: template.primaryColor }}>
-        <div className="h-2 w-20 bg-white/80 rounded mb-1" />
-        <div className="h-1 w-14 bg-white/50 rounded" />
-        <div className="flex gap-2 mt-1">
-          <div className="h-0.5 w-12 bg-white/40 rounded" />
-          <div className="h-0.5 w-10 bg-white/40 rounded" />
-        </div>
-      </div>
-      <div className="p-2 space-y-2">
-        {[1, 2].map(s => (
-          <div key={s}>
-            <div className="h-1 rounded mb-1" style={{ backgroundColor: template.accentColor + '80', width: '35%' }} />
-            <div className="space-y-0.5">
-              {[90, 75, 65].map((w, i) => (
-                <div key={i} className="h-0.5 rounded" style={{ backgroundColor: isDark ? '#334155' : '#D1D5DB', width: `${w}%` }} />
-              ))}
-            </div>
-          </div>
-        ))}
+    <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative', backgroundColor: template.bgColor }}>
+      <div style={{
+        width: CV_W,
+        height: CV_H,
+        transform: `scale(${SCALE})`,
+        transformOrigin: 'top left',
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}>
+        <CVRenderer template={template} content={previewContent} showWatermark={false} />
       </div>
     </div>
   );
-}
+});
 
 export default function TemplateGallery({ selectedId, onSelect, onStartEditing, onAuthOpen }: TemplateGalleryProps) {
   const { t, lang } = useLang();
@@ -205,9 +132,9 @@ export default function TemplateGallery({ selectedId, onSelect, onStartEditing, 
             </div>
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-500 dark:text-gray-400 hidden md:block">
-                <span className="font-semibold text-gray-900 dark:text-white">30</span> gratuits ·{' '}
-                <span className="font-semibold text-amber-600">10</span> premium ·{' '}
-                <span className="font-semibold text-orange-600">10</span> élite IA
+                <span className="font-semibold text-gray-900 dark:text-white">{templates.filter(t => t.tier === 'free').length}</span> gratuits ·{' '}
+                <span className="font-semibold text-amber-600">{templates.filter(t => t.tier === 'premium').length}</span> premium ·{' '}
+                <span className="font-semibold text-orange-600">{templates.filter(t => t.tier === 'elite').length}</span> élite IA
               </div>
             </div>
           </div>

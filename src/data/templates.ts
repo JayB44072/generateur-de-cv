@@ -430,6 +430,192 @@ export const templates: TemplateConfig[] = [
     photoShape: 'rounded', photoPosition: 'float',
     previewBg: 'bg-yellow-50', tags: ['prestige', 'direction', 'élite'],
   },
+
+  // ── 5 TEMPLATES INSPIRÉS DU CV HERMINE (sidebar gauche colorée, photo cercle, dots langues) ──
+
+  // Hermine 1 — Violet Royal (Premium) : reproduction fidèle du style Hermine
+  {
+    id: 51, name: 'Hermine Violet', nameFr: 'Violet Royal', tier: 'premium',
+    description: 'Deep purple sidebar with dot-rated languages — Hermine style', descriptionFr: 'Sidebar violet profond, notes langues en points — style Hermine',
+    primaryColor: '#5B21B6', secondaryColor: '#EDE9FE', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#7C3AED',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-violet-700', tags: ['médical', 'santé', 'hermine', 'premium'],
+  },
+  // Hermine 2 — Marine Élégant (Free)
+  {
+    id: 52, name: 'Hermine Navy', nameFr: 'Marine Élégant', tier: 'free',
+    description: 'Navy blue sidebar, Hermine layout — professional medical', descriptionFr: 'Sidebar bleu marine, structure Hermine — médical professionnel',
+    primaryColor: '#1B365D', secondaryColor: '#E8EEF7', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#2563EB',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-blue-900', tags: ['médical', 'académique', 'hermine'],
+  },
+  // Hermine 3 — Émeraude Prestige (Free)
+  {
+    id: 53, name: 'Hermine Emerald', nameFr: 'Émeraude Prestige', tier: 'free',
+    description: 'Emerald green sidebar, Hermine structure', descriptionFr: 'Sidebar vert émeraude, structure Hermine',
+    primaryColor: '#065F46', secondaryColor: '#ECFDF5', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#059669',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-emerald-800', tags: ['santé', 'environnement', 'hermine'],
+  },
+  // Hermine 4 — Bordeaux Raffiné (Premium)
+  {
+    id: 54, name: 'Hermine Bordeaux', nameFr: 'Bordeaux Raffiné', tier: 'premium',
+    description: 'Rich bordeaux sidebar, elegant Hermine layout', descriptionFr: 'Sidebar bordeaux profond, mise en page Hermine élégante',
+    primaryColor: '#7A1C1C', secondaryColor: '#FEF2F2', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#DC2626',
+    fontFamily: 'font-serif', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-red-900', tags: ['droit', 'direction', 'hermine', 'premium'],
+  },
+  // Hermine 5 — Minuit Doré (Elite)
+  {
+    id: 55, name: 'Hermine Gold', nameFr: 'Minuit Doré', tier: 'elite',
+    description: 'Midnight black sidebar with gold accents — prestige Hermine', descriptionFr: 'Sidebar minuit avec accents or — Hermine prestige élite',
+    primaryColor: '#0F172A', secondaryColor: '#1E293B', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#D4AF37',
+    fontFamily: 'font-serif', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-slate-950', tags: ['luxe', 'prestige', 'hermine', 'élite'],
+  },
+
+  // ── 15 NOUVEAUX TEMPLATES GÉNÉRAUX (IDs 56–70) ──
+
+  // 56 — Provence Lavande (Free)
+  {
+    id: 56, name: 'Provence Lavender', nameFr: 'Provence Lavande', tier: 'free',
+    description: 'Soft lavender sidebar with airy white content', descriptionFr: 'Sidebar lavande douce, contenu blanc aéré',
+    primaryColor: '#6D28D9', secondaryColor: '#F5F3FF', bgColor: '#FEFEFE', textColor: '#1A1A1A', accentColor: '#8B5CF6',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'rounded', photoPosition: 'sidebar-top',
+    previewBg: 'bg-violet-600', tags: ['créatif', 'arts', 'bien-être'],
+  },
+  // 57 — Brique Moderne (Free)
+  {
+    id: 57, name: 'Modern Brick', nameFr: 'Brique Moderne', tier: 'free',
+    description: 'Bold brick red header with clean two-column body', descriptionFr: 'En-tête brique audacieux, corps bicolonne épuré',
+    primaryColor: '#9A3412', secondaryColor: '#FFF7ED', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#EA580C',
+    fontFamily: 'font-sans', layout: 'two-col', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'rounded', photoPosition: 'sidebar-top',
+    previewBg: 'bg-orange-800', tags: ['BTP', 'industrie', 'artisanat'],
+  },
+  // 58 — Glacé Blanc (Free)
+  {
+    id: 58, name: 'Ice White', nameFr: 'Glacé Blanc', tier: 'free',
+    description: 'Ultra-minimalist white with subtle grey lines', descriptionFr: 'Blanc ultra-minimaliste, lignes grises subtiles',
+    primaryColor: '#374151', secondaryColor: '#F9FAFB', bgColor: '#FFFFFF', textColor: '#111827', accentColor: '#6B7280',
+    fontFamily: 'font-sans', layout: 'single', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'header-right',
+    previewBg: 'bg-gray-100', tags: ['minimaliste', 'moderne', 'généraliste'],
+  },
+  // 59 — Bambou Zen (Free)
+  {
+    id: 59, name: 'Bamboo Zen', nameFr: 'Bambou Zen', tier: 'free',
+    description: 'Zen bamboo green sidebar with calm layout', descriptionFr: 'Sidebar vert bambou zen, mise en page apaisante',
+    primaryColor: '#166534', secondaryColor: '#F0FDF4', bgColor: '#FEFEFE', textColor: '#1A1A1A', accentColor: '#16A34A',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-green-800', tags: ['nature', 'écologie', 'bien-être'],
+  },
+  // 60 — Sahel Terre (Free)
+  {
+    id: 60, name: 'Sahel Earth', nameFr: 'Sahel Terre', tier: 'free',
+    description: 'Warm African earth tones, two-column layout', descriptionFr: 'Tons terre africains chauds, bicolonne',
+    primaryColor: '#92400E', secondaryColor: '#FEF3C7', bgColor: '#FFFEF5', textColor: '#1A1A1A', accentColor: '#B45309',
+    fontFamily: 'font-serif', layout: 'two-col', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'rounded', photoPosition: 'sidebar-top',
+    previewBg: 'bg-amber-800', tags: ['généraliste', 'agriculture', 'commerce'],
+  },
+  // 61 — Rose Perlé (Free)
+  {
+    id: 61, name: 'Pearl Rose', nameFr: 'Rose Perlé', tier: 'free',
+    description: 'Soft pearl rose with feminine elegance', descriptionFr: 'Rose perlé doux avec élégance féminine',
+    primaryColor: '#BE185D', secondaryColor: '#FDF2F8', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#EC4899',
+    fontFamily: 'font-serif', layout: 'single', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'rounded', photoPosition: 'header-right',
+    previewBg: 'bg-pink-700', tags: ['mode', 'beauté', 'luxe'],
+  },
+  // 62 — Cognac Premium (Premium)
+  {
+    id: 62, name: 'Cognac Premium', nameFr: 'Cognac Prestige', tier: 'premium',
+    description: 'Rich cognac editorial with gold thread details', descriptionFr: 'Éditorial cognac riche, détails fil doré',
+    primaryColor: '#78350F', secondaryColor: '#FFFBEB', bgColor: '#FEFDF8', textColor: '#1A1A1A', accentColor: '#D97706',
+    fontFamily: 'font-serif', layout: 'editorial', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'rounded', photoPosition: 'float',
+    previewBg: 'bg-amber-900', tags: ['luxe', 'hôtellerie', 'gastronomie', 'premium'],
+  },
+  // 63 — Diamant Bleu (Premium)
+  {
+    id: 63, name: 'Blue Diamond', nameFr: 'Diamant Bleu', tier: 'premium',
+    description: 'Sapphire blue luxury asymmetric design', descriptionFr: 'Design asymétrique luxe bleu saphir',
+    primaryColor: '#1E3A8A', secondaryColor: '#EFF6FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#3B82F6',
+    fontFamily: 'font-sans', layout: 'asymmetric', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'octagon', photoPosition: 'float',
+    previewBg: 'bg-blue-900', tags: ['finance', 'consulting', 'premium'],
+  },
+  // 64 — Caraïbes (Free)
+  {
+    id: 64, name: 'Caribbean', nameFr: 'Caraïbes', tier: 'free',
+    description: 'Vibrant Caribbean turquoise sidebar', descriptionFr: 'Sidebar turquoise caraïbe vibrante',
+    primaryColor: '#0E7490', secondaryColor: '#ECFEFF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#06B6D4',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-cyan-700', tags: ['tourisme', 'hôtellerie', 'restauration'],
+  },
+  // 65 — Velours Rouge (Premium)
+  {
+    id: 65, name: 'Red Velvet', nameFr: 'Velours Rouge', tier: 'premium',
+    description: 'Deep red velvet luxury editorial style', descriptionFr: 'Style éditorial luxueux velours rouge profond',
+    primaryColor: '#881337', secondaryColor: '#FFF1F2', bgColor: '#FFFAFA', textColor: '#1A1A1A', accentColor: '#E11D48',
+    fontFamily: 'font-serif', layout: 'editorial', hasPhoto: true, hasMultiplePhotos: true,
+    photoShape: 'arch', photoPosition: 'float',
+    previewBg: 'bg-rose-900', tags: ['luxe', 'mode', 'arts', 'premium'],
+  },
+  // 66 — Encre Noire (Free)
+  {
+    id: 66, name: 'Black Ink', nameFr: 'Encre Noire', tier: 'free',
+    description: 'Bold black ink single column, editorial feel', descriptionFr: 'Encre noire audacieuse monocolonne, esprit éditorial',
+    primaryColor: '#0A0A0A', secondaryColor: '#F5F5F5', bgColor: '#FFFFFF', textColor: '#0A0A0A', accentColor: '#525252',
+    fontFamily: 'font-serif', layout: 'single', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'square', photoPosition: 'header-right',
+    previewBg: 'bg-neutral-900', tags: ['journalisme', 'rédaction', 'académique'],
+  },
+  // 67 — Pêche Douce (Free)
+  {
+    id: 67, name: 'Soft Peach', nameFr: 'Pêche Douce', tier: 'free',
+    description: 'Delicate peach tones with gentle sidebar', descriptionFr: 'Tons pêche délicats avec sidebar douce',
+    primaryColor: '#C2410C', secondaryColor: '#FFF7ED', bgColor: '#FFFBF7', textColor: '#1A1A1A', accentColor: '#F97316',
+    fontFamily: 'font-sans', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'rounded', photoPosition: 'sidebar-top',
+    previewBg: 'bg-orange-200', tags: ['créatif', 'communication', 'événementiel'],
+  },
+  // 68 — Volcanique (Premium)
+  {
+    id: 68, name: 'Volcanic', nameFr: 'Volcanique', tier: 'premium',
+    description: 'Dark volcanic with lava orange accents', descriptionFr: 'Volcanique sombre avec accents orange lave',
+    primaryColor: '#1C1917', secondaryColor: '#292524', bgColor: '#1C1917', textColor: '#F5F5F4', accentColor: '#F97316',
+    fontFamily: 'font-mono', layout: 'sidebar-right', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'octagon', photoPosition: 'sidebar-top',
+    previewBg: 'bg-stone-900', tags: ['tech', 'data', 'gaming', 'premium'],
+  },
+  // 69 — Tokyo Night (Elite)
+  {
+    id: 69, name: 'Tokyo Night', nameFr: 'Tokyo Nuit', tier: 'elite',
+    description: 'Dark Tokyo aesthetic with neon pink and cyan', descriptionFr: 'Esthétique Tokyo nuit, rose néon et cyan',
+    primaryColor: '#DB2777', secondaryColor: '#0F172A', bgColor: '#0F0A1E', textColor: '#E2E8F0', accentColor: '#22D3EE',
+    fontFamily: 'font-mono', layout: 'sidebar-left', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'hexagon', photoPosition: 'sidebar-top',
+    previewBg: 'bg-purple-950', tags: ['tech', 'gaming', 'élite', 'créatif'],
+  },
+  // 70 — Néon Prisme (Elite)
+  {
+    id: 70, name: 'Neon Prism', nameFr: 'Néon Prisme', tier: 'elite',
+    description: 'Prismatic neon gradient editorial, maximum impact', descriptionFr: 'Éditorial dégradé prismatique néon, impact maximum',
+    primaryColor: '#4F46E5', secondaryColor: '#0F172A', bgColor: '#080820', textColor: '#F0F4FF', accentColor: '#A855F7',
+    fontFamily: 'font-mono', layout: 'asymmetric', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'octagon', photoPosition: 'float',
+    previewBg: 'bg-indigo-950', tags: ['IA', 'startup', 'innovation', 'élite'],
+  },
 ];
 
 export const getTemplateById = (id: number): TemplateConfig | undefined =>

@@ -162,23 +162,31 @@ export async function downloadCVAsPDF(
 
   const { default: jsPDF } = await import('jspdf');
 
-  const A4_W = 210;
-  const A4_H = 297;
+  const A4_W_MM = 210;
+  const A4_H_MM = 297;
 
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
-  const imgW = A4_W;
-  const imgH = (img.height / img.width) * A4_W;
+  // On place toujours l'image sur la largeur exacte de l'A4 (210mm).
+  // La hauteur est calculée en respectant le ratio pixel de l'image capturée
+  // → pas d'étirement, les proportions du CV sont préservées.
+  const imgW = A4_W_MM;
+  const imgH = (img.height / img.width) * A4_W_MM;
 
-  if (imgH > A4_H) {
+  if (imgH > A4_H_MM) {
+    // CV multi-page : on découpe l'image en tranches de 297mm
     let yOffset = 0;
     while (yOffset < imgH) {
       if (yOffset > 0) pdf.addPage();
+      // Placement de l'image entière décalée vers le haut pour que la tranche
+      // correspondant à la page courante soit visible dans la fenêtre A4
       pdf.addImage(dataUrl, 'PNG', 0, -yOffset, imgW, imgH);
-      yOffset += A4_H;
+      yOffset += A4_H_MM;
     }
   } else {
-    pdf.addImage(dataUrl, 'PNG', 0, 0, imgW, imgH);
+    // CV tenant sur une seule page : on le centre verticalement si plus court que A4
+    const yMargin = (A4_H_MM - imgH) / 2;
+    pdf.addImage(dataUrl, 'PNG', 0, yMargin > 4 ? 0 : 0, imgW, imgH);
   }
 
   savePDF(pdf, filename);
