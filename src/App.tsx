@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
+import FeedbackModal from './components/FeedbackModal';
 import HomePage from './pages/HomePage';
 import PricingPage from './pages/PricingPage';
 import AccountPage from './pages/AccountPage';
@@ -12,13 +13,27 @@ import CVEditor from './components/Editor/CVEditor';
 
 type Page = 'home' | 'templates' | 'editor' | 'pricing' | 'account';
 
+const FEEDBACK_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+
 function AppContent() {
-  const { loading } = useAuth();
+  const { loading, profile } = useAuth();
   const [page, setPage] = useState<Page>('home');
   const [authOpen, setAuthOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState(1);
   const [editCvId, setEditCvId] = useState<string | null>(null);
   const [forceNew, setForceNew] = useState(false);
+
+  // Popup "noter le site" toutes les 10 min pour les forfaits gratuits uniquement
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const isFree = !profile || profile.subscription_tier === 'free';
+    if (!isFree) return;
+    // Première apparition après 10 min, puis toutes les 10 min
+    timerRef.current = setInterval(() => setFeedbackOpen(true), FEEDBACK_INTERVAL_MS);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [profile?.subscription_tier]);
 
   if (loading) {
     return (
@@ -118,6 +133,10 @@ function AppContent() {
 
       {authOpen && (
         <AuthModal onClose={() => setAuthOpen(false)} />
+      )}
+
+      {feedbackOpen && (
+        <FeedbackModal onClose={() => setFeedbackOpen(false)} />
       )}
     </div>
   );

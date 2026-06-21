@@ -27,11 +27,40 @@ const METHODS: { key: PaymentMethod; label: string; logo: string; color: string;
   { key: 'card', label: 'Carte bancaire', logo: '💳', color: 'bg-slate-700', desc: 'Visa / Mastercard' },
 ];
 
+const COUNTRY_CODES = [
+  { flag: '🇧🇫', code: '+226', name: 'Burkina Faso', digits: 8 },
+  { flag: '🇨🇲', code: '+237', name: 'Cameroun',     digits: 9 },
+  { flag: '🇸🇳', code: '+221', name: 'Sénégal',       digits: 9 },
+  { flag: '🇨🇮', code: '+225', name: "Côte d'Ivoire", digits: 10 },
+  { flag: '🇲🇱', code: '+223', name: 'Mali',           digits: 8 },
+  { flag: '🇳🇪', code: '+227', name: 'Niger',          digits: 8 },
+  { flag: '🇹🇬', code: '+228', name: 'Togo',           digits: 8 },
+  { flag: '🇧🇯', code: '+229', name: 'Bénin',          digits: 8 },
+  { flag: '🇬🇳', code: '+224', name: 'Guinée',         digits: 9 },
+  { flag: '🇬🇭', code: '+233', name: 'Ghana',          digits: 9 },
+  { flag: '🇳🇬', code: '+234', name: 'Nigeria',        digits: 10 },
+  { flag: '🇨🇬', code: '+242', name: 'Congo',          digits: 9 },
+  { flag: '🇨🇩', code: '+243', name: 'RD Congo',       digits: 9 },
+  { flag: '🇬🇦', code: '+241', name: 'Gabon',          digits: 8 },
+  { flag: '🇿🇦', code: '+27',  name: 'Afrique du Sud', digits: 9 },
+  { flag: '🇫🇷', code: '+33',  name: 'France',         digits: 9 },
+  { flag: '🇧🇪', code: '+32',  name: 'Belgique',       digits: 9 },
+  { flag: '🇨🇭', code: '+41',  name: 'Suisse',         digits: 9 },
+  { flag: '🇺🇸', code: '+1',   name: 'États-Unis',     digits: 10 },
+  { flag: '🇬🇧', code: '+44',  name: 'Royaume-Uni',    digits: 10 },
+];
+
 // ─── MTN / Orange mobile money form ─────────────────────────────
 function MobileMoneyForm({
-  method, phone, setPhone, pin, setPin
-}: { method: PaymentMethod; phone: string; setPhone: (v: string) => void; pin: string; setPin: (v: string) => void }) {
+  method, phone, setPhone, countryCode, setCountryCode,
+}: {
+  method: PaymentMethod;
+  phone: string; setPhone: (v: string) => void;
+  countryCode: string; setCountryCode: (v: string) => void;
+}) {
   const isOrange = method === 'orange';
+  const selected = COUNTRY_CODES.find(c => c.code === countryCode) ?? COUNTRY_CODES[0];
+
   return (
     <div className="space-y-4">
       <div className="p-4 rounded-2xl flex items-center gap-3" style={{ backgroundColor: isOrange ? '#FFF3E0' : '#FFFDE7' }}>
@@ -40,46 +69,76 @@ function MobileMoneyForm({
         </div>
         <div>
           <p className="font-semibold text-sm text-gray-900">{isOrange ? 'Orange Money' : 'MTN Mobile Money'}</p>
-          <p className="text-xs text-gray-500">Vous recevrez une notification de confirmation</p>
+          <p className="text-xs text-gray-500">Vous recevrez une notification de confirmation sur votre téléphone</p>
         </div>
       </div>
+
       <div>
         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           Numéro {isOrange ? 'Orange' : 'MTN'} *
         </label>
-        <div className="flex">
-          <div className="px-3 py-2.5 bg-gray-100 dark:bg-gray-700 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-xl text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-            <span>{isOrange ? '🇧🇫' : '🇧🇫'}</span>
-            <span>+226</span>
+        <div className="flex gap-2">
+          {/* Sélecteur de pays */}
+          <div className="relative">
+            <select
+              value={countryCode}
+              onChange={e => { setCountryCode(e.target.value); setPhone(''); }}
+              className="appearance-none pl-2 pr-7 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              style={{ minWidth: 90 }}
+            >
+              {COUNTRY_CODES.map(c => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.code}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">▾</span>
           </div>
+          {/* Numéro */}
           <input
             type="tel"
             value={phone}
-            onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 8))}
-            placeholder="XX XX XX XX"
+            onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, selected.digits))}
+            placeholder={'X'.repeat(selected.digits)}
             required
-            maxLength={8}
-            className="flex-1 px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-r-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxLength={selected.digits}
+            className="flex-1 px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{selected.flag} {selected.name} · {selected.digits} chiffres</p>
       </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Code PIN *
-        </label>
-        <input
-          type="password"
-          value={pin}
-          onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-          placeholder="••••••"
-          required
-          maxLength={6}
-          className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-widest"
-        />
+
+      {/* Instruction USSD */}
+      <div className={`rounded-xl p-4 border ${isOrange ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800' : 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'}`}>
+        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          {isOrange ? '📲 Comment payer avec Orange Money' : '📲 Comment payer avec MTN MoMo'}
+        </p>
+        <ol className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+          <li className="flex items-start gap-2">
+            <span className={`font-bold shrink-0 ${isOrange ? 'text-orange-500' : 'text-yellow-600'}`}>1.</span>
+            Entrez votre numéro ci-dessus et cliquez sur <strong>Payer</strong>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className={`font-bold shrink-0 ${isOrange ? 'text-orange-500' : 'text-yellow-600'}`}>2.</span>
+            Sur votre téléphone, composez le code&nbsp;
+            <code className={`px-1.5 py-0.5 rounded font-mono font-bold text-white text-xs ${isOrange ? 'bg-orange-500' : 'bg-yellow-500'}`}>
+              {isOrange ? '#150*50#' : '*126#'}
+            </code>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className={`font-bold shrink-0 ${isOrange ? 'text-orange-500' : 'text-yellow-600'}`}>3.</span>
+            Confirmez le paiement de <strong>{isOrange ? 'Orange Money' : 'MTN MoMo'}</strong> sur votre téléphone
+          </li>
+          <li className="flex items-start gap-2">
+            <span className={`font-bold shrink-0 ${isOrange ? 'text-orange-500' : 'text-yellow-600'}`}>4.</span>
+            Votre abonnement sera activé automatiquement après vérification
+          </li>
+        </ol>
       </div>
+
       <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
         <Lock size={12} className="mt-0.5 shrink-0" />
-        <p>Votre paiement est sécurisé. Vous recevrez une notification push sur votre téléphone pour confirmer la transaction.</p>
+        <p>Paiement sécurisé. La vérification est effectuée automatiquement après confirmation sur votre téléphone.</p>
       </div>
     </div>
   );
@@ -289,7 +348,7 @@ export default function PaymentModal({ tier, onClose, onAuthOpen, onSuccess }: P
 
   // Mobile money fields
   const [phone, setPhone] = useState('');
-  const [pin, setPin] = useState('');
+  const [countryCode, setCountryCode] = useState('+226');
   // PayPal fields
   const [ppEmail, setPpEmail] = useState('');
   // Card fields
@@ -326,7 +385,7 @@ export default function PaymentModal({ tier, onClose, onAuthOpen, onSuccess }: P
     // Build masked payment details for record
     let details: Record<string, string> = {};
     if (method === 'mtn' || method === 'orange') {
-      details = { phone: '+226' + phone.slice(0, 2) + '••••' + phone.slice(-2) };
+      details = { phone: countryCode + phone.slice(0, 2) + '••••' + phone.slice(-2) };
     } else if (method === 'paypal') {
       details = { email: ppEmail };
     } else if (method === 'card') {
@@ -349,7 +408,10 @@ export default function PaymentModal({ tier, onClose, onAuthOpen, onSuccess }: P
 
   const isFormValid = () => {
     if (!method) return false;
-    if (method === 'mtn' || method === 'orange') return phone.length === 8 && pin.length >= 4;
+    if (method === 'mtn' || method === 'orange') {
+      const digits = COUNTRY_CODES.find(c => c.code === countryCode)?.digits ?? 8;
+      return phone.length === digits;
+    }
     if (method === 'paypal') return ppEmail.includes('@');
     if (method === 'card') return cardNumber.replace(/\s/g, '').length === 16 && cardHolder.length > 2 && expiry.length === 5 && cvv.length >= 3;
     return false;
@@ -454,7 +516,7 @@ export default function PaymentModal({ tier, onClose, onAuthOpen, onSuccess }: P
               </div>
 
               {(method === 'mtn' || method === 'orange') && (
-                <MobileMoneyForm method={method} phone={phone} setPhone={setPhone} pin={pin} setPin={setPin} />
+                <MobileMoneyForm method={method} phone={phone} setPhone={setPhone} countryCode={countryCode} setCountryCode={setCountryCode} />
               )}
               {method === 'paypal' && (
                 <PayPalForm email={ppEmail} setEmail={setPpEmail} />

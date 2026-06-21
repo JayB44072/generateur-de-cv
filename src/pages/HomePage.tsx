@@ -1,5 +1,6 @@
 import { FileText, Download, Zap, Shield, Star, ArrowRight, Check } from 'lucide-react';
 import { useLang } from '../contexts/LanguageContext';
+import FeedbackSection from '../components/FeedbackSection';
 
 interface HomePageProps {
   onNavigate: (page: 'templates' | 'editor' | 'pricing') => void;
@@ -280,6 +281,9 @@ export default function HomePage({ onNavigate, onAuthOpen }: HomePageProps) {
           </div>
         </div>
       </section>
+
+      {/* Zone avis de la communauté */}
+      <FeedbackSection />
 
       {/* Footer */}
       <footer className="bg-gray-900 dark:bg-gray-950 text-gray-400 py-12">
