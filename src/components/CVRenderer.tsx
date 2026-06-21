@@ -1147,6 +1147,295 @@ function EditorialLayout({ tpl, content, textPrimary, textSec, barBg, dark, show
   );
 }
 
+// ── HERMINE LAYOUT — Réplique fidèle du CV Hermine Corine ─────────────────────
+// Sidebar colorée (photo cercle · profil · langues dots · contacts)
+// Zone principale (grand header nom · timeline éducation · compétences · expériences badges)
+
+function HermineSidebarBg({ shape, color }: { shape?: string; color: string }) {
+  const c = (a: string) => hexAlpha(color, a);
+  if (shape === 'diagonals') return (
+    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.18 }} preserveAspectRatio="none">
+      {Array.from({ length: 14 }, (_, i) => (
+        <line key={i} x1={-10 + i * 22} y1="0" x2={-10 + i * 22 + 60} y2="100%" stroke="white" strokeWidth="10" />
+      ))}
+    </svg>
+  );
+  if (shape === 'blobs') return (
+    <svg viewBox="0 0 200 700" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      <ellipse cx="170" cy="90" rx="90" ry="75" fill="rgba(255,255,255,0.10)" />
+      <path d="M-20,350 Q60,280 120,380 Q180,480 30,520 Z" fill="rgba(255,255,255,0.08)" />
+      <ellipse cx="40" cy="620" rx="70" ry="55" fill="rgba(255,255,255,0.07)" />
+    </svg>
+  );
+  if (shape === 'triangles') return (
+    <svg viewBox="0 0 200 700" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      <polygon points="160,0 200,0 200,80" fill="rgba(255,255,255,0.12)" />
+      <polygon points="0,180 70,120 80,220" fill="rgba(255,255,255,0.09)" />
+      <polygon points="100,380 180,320 190,430" fill="rgba(255,255,255,0.08)" />
+      <polygon points="0,550 90,510 60,620" fill="rgba(255,255,255,0.10)" />
+      <polygon points="140,650 200,620 200,700" fill="rgba(255,255,255,0.09)" />
+    </svg>
+  );
+  if (shape === 'hexagons') return (
+    <svg viewBox="0 0 200 700" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      {[{cx:150,cy:60},{cx:30,cy:180},{cx:160,cy:300},{cx:50,cy:440},{cx:155,cy:580}].map((h,i)=>(
+        <polygon key={i} points={`${h.cx},${h.cy-28} ${h.cx+24},${h.cy-14} ${h.cx+24},${h.cy+14} ${h.cx},${h.cy+28} ${h.cx-24},${h.cy+14} ${h.cx-24},${h.cy-14}`}
+          fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5" />
+      ))}
+      <polygon points="100,650 124,636 124,608 100,594 76,608 76,636" fill="rgba(255,255,255,0.10)" />
+    </svg>
+  );
+  // Default: circles (original Hermine)
+  return (
+    <>
+      <div style={{ position: 'absolute', top: -50, right: -50, width: 140, height: 140, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.09)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 80, left: -40, width: 100, height: 100, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: 120, right: -30, width: 120, height: 120, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: -40, left: 10, width: 90, height: 90, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
+    </>
+  );
+}
+
+function HermineLayout({ tpl, content, textPrimary, textSec, showWatermark }: any) {
+  const { personalInfo: p, experiences, educations, skills, languages, customSections } = content;
+  const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Votre Nom';
+  const contacts = [
+    { type: 'phone', value: p.phone },
+    { type: 'email', value: p.email },
+    { type: 'address', value: p.address },
+    { type: 'website', value: p.website },
+    { type: 'linkedin', value: p.linkedin },
+  ].filter(c => c.value);
+
+  const sidebarBg = tpl.primaryColor;
+  const accent = tpl.accentColor;
+  const isSerif = tpl.fontFamily === 'font-serif';
+  const fontStack = isSerif ? 'Georgia, "Times New Roman", serif' : 'Inter, Arial, sans-serif';
+
+  // Séparer prénom / nom pour l'affichage Hermine (nom EN MAJUSCULES, prénom normal)
+  const lastName = (p.lastName || '').toUpperCase() || 'NOM';
+  const firstName = p.firstName || 'Prénom';
+
+  return (
+    <div style={{ backgroundColor: tpl.bgColor, minHeight: '100%', display: 'flex', fontFamily: fontStack, position: 'relative' }}>
+
+      {/* ── SIDEBAR ── */}
+      <div style={{ width: '32%', minHeight: '100%', backgroundColor: sidebarBg, padding: '28px 14px 24px', display: 'flex', flexDirection: 'column', gap: 16, position: 'relative', overflow: 'hidden' }}>
+        <HermineSidebarBg shape={tpl.sidebarShape} color={sidebarBg} />
+
+        {/* Photo */}
+        <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <div style={{ width: 86, height: 86, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.5)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+            {content.profilePhoto
+              ? <img src={content.profilePhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)', fontSize: 30, fontWeight: 800, color: '#FFF' }}>
+                  {(p.firstName || 'N')[0]}
+                </div>
+            }
+          </div>
+        </div>
+
+        {/* Profil */}
+        {p.summary && (
+          <div style={{ position: 'relative' }}>
+            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
+              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Profil</span>
+            </div>
+            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0 }}>{p.summary}</p>
+          </div>
+        )}
+
+        {/* Langues — points comme Hermine */}
+        {languages.length > 0 && (
+          <div style={{ position: 'relative' }}>
+            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
+              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Langues</span>
+            </div>
+            {languages.map((l: any) => {
+              const filled = Math.round((parseFloat(langLevelWidth[l.level] ?? '50%') / 100) * 5);
+              return (
+                <div key={l.id} style={{ marginBottom: 7 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 600, color: '#FFF' }}>{l.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: i < filled ? '#FFF' : 'rgba(255,255,255,0.25)' }} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Loisirs / Qualités depuis customSections ou compétences */}
+        {skills.length > 0 && (
+          <div style={{ position: 'relative' }}>
+            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
+              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Qualités</span>
+            </div>
+            {skills.slice(0, 6).map((sk: any) => (
+              <div key={sk.id} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)' }}>{sk.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Contacts */}
+        {contacts.length > 0 && (
+          <div style={{ position: 'relative', marginTop: 'auto' }}>
+            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
+              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Contacts</span>
+            </div>
+            {contacts.map(c => <ContactItem key={c.type} type={c.type} value={c.value} color="rgba(255,255,255,0.8)" size={8.5} />)}
+          </div>
+        )}
+      </div>
+
+      {/* ── ZONE PRINCIPALE ── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+        {/* Header Hermine : grand nom + séparateur + titre */}
+        <div style={{ padding: '28px 22px 16px', borderBottom: `2px solid ${hexAlpha(accent, '30')}` }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: tpl.primaryColor, letterSpacing: 0.5, lineHeight: 1.1 }}>
+            {lastName}
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 400, color: tpl.primaryColor, letterSpacing: 0.5, marginTop: 2 }}>
+            {firstName}
+          </div>
+          {p.dateOfBirth && (
+            <div style={{ fontSize: 8.5, color: textSec, marginTop: 3, fontStyle: 'italic' }}>Né(e) le {p.dateOfBirth}</div>
+          )}
+          <div style={{ width: '100%', height: 1, backgroundColor: hexAlpha(accent, '40'), margin: '8px 0' }} />
+          {p.title && (
+            <div style={{ fontSize: 9.5, color: textSec, lineHeight: 1.4 }}>{p.title}</div>
+          )}
+        </div>
+
+        <div style={{ flex: 1, padding: '14px 22px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Éducation — timeline avec cercles comme Hermine */}
+          {educations.length > 0 && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>Éducation</span>
+                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
+              </div>
+              {educations.map((edu: any) => (
+                <div key={edu.id} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', border: `2px solid ${accent}`, backgroundColor: '#FFF', marginTop: 3 }} />
+                    <div style={{ width: 1, flex: 1, backgroundColor: hexAlpha(accent, '30'), marginTop: 2 }} />
+                  </div>
+                  <div style={{ flex: 1, paddingBottom: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                      <span style={{ fontSize: 9.5, fontWeight: 800, color: textPrimary }}>{edu.degree}{edu.field ? ` – ${edu.field}` : ''}</span>
+                      <span style={{ fontSize: 8, color: accent, fontWeight: 700 }}>
+                        {edu.startDate && edu.endDate ? `${edu.startDate}-${edu.endDate.slice(-2)}` : edu.startDate || edu.endDate || ''}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 8.5, color: textSec, fontStyle: 'italic', marginTop: 1 }}>{edu.institution}{edu.location ? `, ${edu.location}` : ''}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Compétences — grille 2 colonnes avec titres de catégories */}
+          {skills.length > 0 && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>Compétences</span>
+                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
+              </div>
+              {/* Regroupe par catégorie si disponible */}
+              {(() => {
+                const cats: Record<string, string[]> = {};
+                skills.forEach((sk: any) => {
+                  const cat = sk.category || 'Compétences';
+                  if (!cats[cat]) cats[cat] = [];
+                  cats[cat].push(sk.name);
+                });
+                const entries = Object.entries(cats);
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: entries.length >= 3 ? '1fr 1fr 1fr' : '1fr 1fr', gap: '0 10px' }}>
+                    {entries.map(([cat, items]) => (
+                      <div key={cat}>
+                        <div style={{ backgroundColor: accent, padding: '2px 6px', borderRadius: 3, marginBottom: 5, textAlign: 'center' }}>
+                          <span style={{ fontSize: 7.5, fontWeight: 700, color: '#FFF' }}>{cat}</span>
+                        </div>
+                        {items.map((item, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
+                            <span style={{ fontSize: 8.5, color: textSec }}>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Expériences — badges date comme Hermine */}
+          {experiences.length > 0 && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>Expérience Professionnelle</span>
+                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
+              </div>
+              {experiences.map((exp: any) => (
+                <div key={exp.id} style={{ marginBottom: 12, backgroundColor: hexAlpha(accent, '08'), borderRadius: 6, padding: '8px 10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                    <span style={{ backgroundColor: accent, color: '#FFF', fontSize: 7.5, fontWeight: 800, padding: '2px 8px', borderRadius: 20 }}>
+                      {exp.startDate}{exp.startDate && (exp.current ? ' – Présent' : exp.endDate ? ` – ${exp.endDate}` : '')}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: textPrimary }}>{exp.position}</span>
+                  </div>
+                  <div style={{ fontSize: 9, color: accent, fontStyle: 'italic', marginBottom: 3 }}>
+                    {exp.company}{exp.location ? ` – ${exp.location}` : ''}
+                  </div>
+                  {exp.description && (
+                    <div style={{ fontSize: 8.5, color: textSec, lineHeight: 1.55 }}>
+                      {exp.description.split('\n').filter(Boolean).map((line: string, i: number) => (
+                        <div key={i} style={{ display: 'flex', gap: 5, marginBottom: 2 }}>
+                          <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: accent, flexShrink: 0, marginTop: 3 }} />
+                          <span>{line}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Sections personnalisées */}
+          {customSections.map((cs: any) => (
+            <div key={cs.id}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent }} />
+                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>{cs.title}</span>
+                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
+              </div>
+              <p style={{ fontSize: 9.5, color: textSec, lineHeight: 1.65 }}>{cs.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showWatermark && <Watermark />}
+    </div>
+  );
+}
+
 // ── Main export ──────────────────────────────────────────────────────────────
 
 export default function CVRenderer({ template: tpl, content, showWatermark = false }: CVRendererProps) {
@@ -1162,5 +1451,6 @@ export default function CVRenderer({ template: tpl, content, showWatermark = fal
   if (tpl.layout === 'sidebar-left') return <SidebarLeftLayout {...sharedProps} />;
   if (tpl.layout === 'sidebar-right') return <SidebarRightLayout {...sharedProps} />;
   if (tpl.layout === 'asymmetric') return <AsymmetricLayout {...sharedProps} />;
+  if (tpl.layout === 'hermine') return <HermineLayout {...sharedProps} />;
   return <EditorialLayout {...sharedProps} />;
 }

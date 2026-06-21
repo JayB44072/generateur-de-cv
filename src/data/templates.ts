@@ -15,13 +15,14 @@ export interface TemplateConfig {
   textColor: string;
   accentColor: string;
   fontFamily: string;
-  layout: 'single' | 'two-col' | 'sidebar-left' | 'sidebar-right' | 'asymmetric' | 'editorial';
+  layout: 'single' | 'two-col' | 'sidebar-left' | 'sidebar-right' | 'asymmetric' | 'editorial' | 'hermine';
   hasPhoto: boolean;
   hasMultiplePhotos: boolean;
   photoShape: PhotoShape;
   photoPosition: PhotoPosition;
   previewBg: string;
   tags: string[];
+  sidebarShape?: 'circles' | 'diagonals' | 'blobs' | 'triangles' | 'hexagons' | 'waves';
 }
 
 export const templates: TemplateConfig[] = [
@@ -615,6 +616,59 @@ export const templates: TemplateConfig[] = [
     fontFamily: 'font-mono', layout: 'asymmetric', hasPhoto: true, hasMultiplePhotos: false,
     photoShape: 'octagon', photoPosition: 'float',
     previewBg: 'bg-indigo-950', tags: ['IA', 'startup', 'innovation', 'élite'],
+  },
+
+  // ── 5 TEMPLATES LAYOUT HERMINE (réplique fidèle du CV Hermine, couleurs & formes variées) ──
+
+  // 71 — Violet Hermine (Premium) — formes cercles, identique à l'original
+  {
+    id: 71, name: 'Hermine Classic', nameFr: 'Hermine Classique', tier: 'premium',
+    description: 'Exact Hermine layout — deep violet sidebar, circle photo, dot languages', descriptionFr: 'Mise en page Hermine exacte — sidebar violet profond, photo cercle, langues en points',
+    primaryColor: '#5B21B6', secondaryColor: '#F5F3FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#7C3AED',
+    fontFamily: 'font-sans', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-violet-700', tags: ['hermine', 'médical', 'professionnel', 'premium'],
+    sidebarShape: 'circles',
+  },
+  // 72 — Saphir Hermine (Free) — formes diagonales
+  {
+    id: 72, name: 'Hermine Sapphire', nameFr: 'Hermine Saphir', tier: 'free',
+    description: 'Hermine layout — sapphire blue sidebar with diagonal stripe pattern', descriptionFr: 'Layout Hermine — sidebar bleu saphir avec motif diagonales',
+    primaryColor: '#1E3A8A', secondaryColor: '#EFF6FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#3B82F6',
+    fontFamily: 'font-sans', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-blue-900', tags: ['hermine', 'médical', 'académique'],
+    sidebarShape: 'diagonals',
+  },
+  // 73 — Terracotta Hermine (Free) — formes blob organiques
+  {
+    id: 73, name: 'Hermine Terracotta', nameFr: 'Hermine Terracotta', tier: 'free',
+    description: 'Hermine layout — warm terracotta sidebar with organic blob shapes', descriptionFr: 'Layout Hermine — sidebar terracotta chaleureuse avec formes blob organiques',
+    primaryColor: '#9A3412', secondaryColor: '#FFF7ED', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#EA580C',
+    fontFamily: 'font-sans', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-orange-800', tags: ['hermine', 'créatif', 'artisanat'],
+    sidebarShape: 'blobs',
+  },
+  // 74 — Jade Hermine (Premium) — formes triangles géométriques
+  {
+    id: 74, name: 'Hermine Jade', nameFr: 'Hermine Jade', tier: 'premium',
+    description: 'Hermine layout — jade green sidebar with geometric triangle pattern', descriptionFr: 'Layout Hermine — sidebar jade vert avec motif triangles géométriques',
+    primaryColor: '#065F46', secondaryColor: '#ECFDF5', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#10B981',
+    fontFamily: 'font-serif', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-emerald-800', tags: ['hermine', 'santé', 'environnement', 'premium'],
+    sidebarShape: 'triangles',
+  },
+  // 75 — Or & Nuit Hermine (Elite) — formes hexagonales
+  {
+    id: 75, name: 'Hermine Gold Night', nameFr: 'Hermine Or & Nuit', tier: 'elite',
+    description: 'Hermine layout — midnight black sidebar with gold accents and hexagonal pattern', descriptionFr: 'Layout Hermine — sidebar nuit noire, accents or, motif hexagonal élite',
+    primaryColor: '#0F172A', secondaryColor: '#1E293B', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#D4AF37',
+    fontFamily: 'font-serif', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
+    photoShape: 'circle', photoPosition: 'sidebar-top',
+    previewBg: 'bg-slate-950', tags: ['hermine', 'luxe', 'prestige', 'élite'],
+    sidebarShape: 'hexagons',
   },
 ];
 
