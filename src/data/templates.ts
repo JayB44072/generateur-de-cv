@@ -618,53 +618,54 @@ export const templates: TemplateConfig[] = [
     previewBg: 'bg-indigo-950', tags: ['IA', 'startup', 'innovation', 'élite'],
   },
 
-  // ── 5 TEMPLATES LAYOUT HERMINE (réplique fidèle du CV Hermine, couleurs & formes variées) ──
+  // ── 5 TEMPLATES LAYOUT HERMINE — Réplique pixel-perfect du CV Hermine Corine ──
+  // TOUS ELITE : photo+nom en en-tête, sidebar bandeaux, compétences 3 col, badges date expérience
 
-  // 71 — Violet Hermine (Premium) — formes cercles, identique à l'original
+  // 71 — Violet Royal (couleur exacte du PDF Hermine) — cercles décoratifs
   {
-    id: 71, name: 'Hermine Classic', nameFr: 'Hermine Classique', tier: 'premium',
-    description: 'Exact Hermine layout — deep violet sidebar, circle photo, dot languages', descriptionFr: 'Mise en page Hermine exacte — sidebar violet profond, photo cercle, langues en points',
-    primaryColor: '#5B21B6', secondaryColor: '#F5F3FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#7C3AED',
+    id: 71, name: 'Hermine Classic', nameFr: 'Hermine Classique', tier: 'elite',
+    description: 'Pixel-perfect Hermine — violet, circle photo, dot languages, 3-col skills, date badges', descriptionFr: 'Réplique exacte du CV Hermine — violet, photo cercle, langues points, compétences 3 col, badges date',
+    primaryColor: '#6B21A8', secondaryColor: '#F5F3FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#6B21A8',
     fontFamily: 'font-sans', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
     photoShape: 'circle', photoPosition: 'sidebar-top',
-    previewBg: 'bg-violet-700', tags: ['hermine', 'médical', 'professionnel', 'premium'],
+    previewBg: 'bg-violet-800', tags: ['hermine', 'médical', 'professionnel', 'élite'],
     sidebarShape: 'circles',
   },
-  // 72 — Saphir Hermine (Free) — formes diagonales
+  // 72 — Saphir (bleu profond) — diagonales discrètes
   {
-    id: 72, name: 'Hermine Sapphire', nameFr: 'Hermine Saphir', tier: 'free',
-    description: 'Hermine layout — sapphire blue sidebar with diagonal stripe pattern', descriptionFr: 'Layout Hermine — sidebar bleu saphir avec motif diagonales',
-    primaryColor: '#1E3A8A', secondaryColor: '#EFF6FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#3B82F6',
+    id: 72, name: 'Hermine Sapphire', nameFr: 'Hermine Saphir', tier: 'elite',
+    description: 'Hermine layout — sapphire blue with subtle diagonal pattern', descriptionFr: 'Layout Hermine — bleu saphir avec motif diagonales subtil',
+    primaryColor: '#1E3A8A', secondaryColor: '#EFF6FF', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#1E3A8A',
     fontFamily: 'font-sans', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
     photoShape: 'circle', photoPosition: 'sidebar-top',
-    previewBg: 'bg-blue-900', tags: ['hermine', 'médical', 'académique'],
+    previewBg: 'bg-blue-900', tags: ['hermine', 'médical', 'académique', 'élite'],
     sidebarShape: 'diagonals',
   },
-  // 73 — Terracotta Hermine (Free) — formes blob organiques
+  // 73 — Terracotta (chaud) — blobs organiques
   {
-    id: 73, name: 'Hermine Terracotta', nameFr: 'Hermine Terracotta', tier: 'free',
-    description: 'Hermine layout — warm terracotta sidebar with organic blob shapes', descriptionFr: 'Layout Hermine — sidebar terracotta chaleureuse avec formes blob organiques',
-    primaryColor: '#9A3412', secondaryColor: '#FFF7ED', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#EA580C',
+    id: 73, name: 'Hermine Terracotta', nameFr: 'Hermine Terracotta', tier: 'elite',
+    description: 'Hermine layout — warm terracotta with organic blob accents', descriptionFr: 'Layout Hermine — terracotta chaleureuse avec blobs organiques',
+    primaryColor: '#9A3412', secondaryColor: '#FFF7ED', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#9A3412',
     fontFamily: 'font-sans', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
     photoShape: 'circle', photoPosition: 'sidebar-top',
-    previewBg: 'bg-orange-800', tags: ['hermine', 'créatif', 'artisanat'],
+    previewBg: 'bg-orange-800', tags: ['hermine', 'créatif', 'artisanat', 'élite'],
     sidebarShape: 'blobs',
   },
-  // 74 — Jade Hermine (Premium) — formes triangles géométriques
+  // 74 — Jade (vert émeraude) — triangles géométriques
   {
-    id: 74, name: 'Hermine Jade', nameFr: 'Hermine Jade', tier: 'premium',
-    description: 'Hermine layout — jade green sidebar with geometric triangle pattern', descriptionFr: 'Layout Hermine — sidebar jade vert avec motif triangles géométriques',
-    primaryColor: '#065F46', secondaryColor: '#ECFDF5', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#10B981',
+    id: 74, name: 'Hermine Jade', nameFr: 'Hermine Jade', tier: 'elite',
+    description: 'Hermine layout — jade green with geometric triangle accents', descriptionFr: 'Layout Hermine — vert jade avec triangles géométriques',
+    primaryColor: '#065F46', secondaryColor: '#ECFDF5', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#065F46',
     fontFamily: 'font-serif', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
     photoShape: 'circle', photoPosition: 'sidebar-top',
-    previewBg: 'bg-emerald-800', tags: ['hermine', 'santé', 'environnement', 'premium'],
+    previewBg: 'bg-emerald-800', tags: ['hermine', 'santé', 'environnement', 'élite'],
     sidebarShape: 'triangles',
   },
-  // 75 — Or & Nuit Hermine (Elite) — formes hexagonales
+  // 75 — Or & Nuit (luxe prestige) — hexagones
   {
     id: 75, name: 'Hermine Gold Night', nameFr: 'Hermine Or & Nuit', tier: 'elite',
-    description: 'Hermine layout — midnight black sidebar with gold accents and hexagonal pattern', descriptionFr: 'Layout Hermine — sidebar nuit noire, accents or, motif hexagonal élite',
-    primaryColor: '#0F172A', secondaryColor: '#1E293B', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#D4AF37',
+    description: 'Hermine layout — midnight navy + gold with hexagonal accents, prestige elite', descriptionFr: 'Layout Hermine — marine nuit + or avec hexagones, prestige élite',
+    primaryColor: '#1A1A3E', secondaryColor: '#F5F0D8', bgColor: '#FFFFFF', textColor: '#1A1A1A', accentColor: '#B8860B',
     fontFamily: 'font-serif', layout: 'hermine', hasPhoto: true, hasMultiplePhotos: false,
     photoShape: 'circle', photoPosition: 'sidebar-top',
     previewBg: 'bg-slate-950', tags: ['hermine', 'luxe', 'prestige', 'élite'],

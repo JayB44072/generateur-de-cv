@@ -1147,213 +1147,230 @@ function EditorialLayout({ tpl, content, textPrimary, textSec, barBg, dark, show
   );
 }
 
-// ── HERMINE LAYOUT — Réplique fidèle du CV Hermine Corine ─────────────────────
-// Sidebar colorée (photo cercle · profil · langues dots · contacts)
-// Zone principale (grand header nom · timeline éducation · compétences · expériences badges)
+// ── HERMINE LAYOUT — Réplique pixel-perfect du CV Hermine Corine ──────────────
+// Structure exacte du PDF :
+//   EN-TÊTE pleine largeur : photo cercle (gauche) + NOM MAJUSCULES / prénom / date / ligne / titre (droite)
+//   CORPS deux colonnes :
+//     SIDEBAR (fond blanc, bandeaux colorés pleine largeur) : PROFIL · LANGUES (points) · LOISIRS · QUALITÉS · CONTACTS
+//     MAIN (fond blanc) : ÉDUCATION (timeline cercles) · COMPÉTENCES (tableau 3 col) · EXPÉRIENCE (badges date)
+//   Les 5 variantes se différencient par la couleur primaire + formes SVG discrètes dans la sidebar
 
-function HermineSidebarBg({ shape, color }: { shape?: string; color: string }) {
-  const c = (a: string) => hexAlpha(color, a);
+function HermineSidebarDecor({ shape, color }: { shape?: string; color: string }) {
   if (shape === 'diagonals') return (
-    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.18 }} preserveAspectRatio="none">
-      {Array.from({ length: 14 }, (_, i) => (
-        <line key={i} x1={-10 + i * 22} y1="0" x2={-10 + i * 22 + 60} y2="100%" stroke="white" strokeWidth="10" />
+    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="none">
+      {Array.from({ length: 10 }, (_, i) => (
+        <line key={i} x1={-20 + i * 26} y1="0" x2={-20 + i * 26 + 80} y2="100%"
+          stroke={color} strokeWidth="8" strokeOpacity="0.07" />
       ))}
     </svg>
   );
   if (shape === 'blobs') return (
-    <svg viewBox="0 0 200 700" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
-      <ellipse cx="170" cy="90" rx="90" ry="75" fill="rgba(255,255,255,0.10)" />
-      <path d="M-20,350 Q60,280 120,380 Q180,480 30,520 Z" fill="rgba(255,255,255,0.08)" />
-      <ellipse cx="40" cy="620" rx="70" ry="55" fill="rgba(255,255,255,0.07)" />
+    <svg viewBox="0 0 220 900" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      <ellipse cx="190" cy="120" rx="100" ry="80" fill={color} fillOpacity="0.07" />
+      <path d="M-10,420 Q80,340 150,460 Q200,560 40,610 Z" fill={color} fillOpacity="0.06" />
+      <ellipse cx="30" cy="780" rx="80" ry="60" fill={color} fillOpacity="0.05" />
     </svg>
   );
   if (shape === 'triangles') return (
-    <svg viewBox="0 0 200 700" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
-      <polygon points="160,0 200,0 200,80" fill="rgba(255,255,255,0.12)" />
-      <polygon points="0,180 70,120 80,220" fill="rgba(255,255,255,0.09)" />
-      <polygon points="100,380 180,320 190,430" fill="rgba(255,255,255,0.08)" />
-      <polygon points="0,550 90,510 60,620" fill="rgba(255,255,255,0.10)" />
-      <polygon points="140,650 200,620 200,700" fill="rgba(255,255,255,0.09)" />
+    <svg viewBox="0 0 220 900" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      <polygon points="180,0 220,0 220,90" fill={color} fillOpacity="0.10" />
+      <polygon points="0,220 80,155 90,270" fill={color} fillOpacity="0.07" />
+      <polygon points="110,470 200,400 210,520" fill={color} fillOpacity="0.06" />
+      <polygon points="0,660 100,620 70,730" fill={color} fillOpacity="0.08" />
+      <polygon points="160,820 220,790 220,900" fill={color} fillOpacity="0.07" />
     </svg>
   );
   if (shape === 'hexagons') return (
-    <svg viewBox="0 0 200 700" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
-      {[{cx:150,cy:60},{cx:30,cy:180},{cx:160,cy:300},{cx:50,cy:440},{cx:155,cy:580}].map((h,i)=>(
-        <polygon key={i} points={`${h.cx},${h.cy-28} ${h.cx+24},${h.cy-14} ${h.cx+24},${h.cy+14} ${h.cx},${h.cy+28} ${h.cx-24},${h.cy+14} ${h.cx-24},${h.cy-14}`}
-          fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.5" />
+    <svg viewBox="0 0 220 900" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      {[{cx:170,cy:80},{cx:40,cy:240},{cx:185,cy:400},{cx:55,cy:570},{cx:175,cy:750}].map((h,i)=>(
+        <polygon key={i}
+          points={`${h.cx},${h.cy-32} ${h.cx+28},${h.cy-16} ${h.cx+28},${h.cy+16} ${h.cx},${h.cy+32} ${h.cx-28},${h.cy+16} ${h.cx-28},${h.cy-16}`}
+          fill="none" stroke={color} strokeWidth="1.5" strokeOpacity="0.18" />
       ))}
-      <polygon points="100,650 124,636 124,608 100,594 76,608 76,636" fill="rgba(255,255,255,0.10)" />
     </svg>
   );
-  // Default: circles (original Hermine)
+  // circles — fidèle à l'original violet d'Hermine
   return (
-    <>
-      <div style={{ position: 'absolute', top: -50, right: -50, width: 140, height: 140, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.09)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: 80, left: -40, width: 100, height: 100, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: 120, right: -30, width: 120, height: 120, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: -40, left: 10, width: 90, height: 90, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
-    </>
+    <svg viewBox="0 0 220 900" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} preserveAspectRatio="xMidYMid slice">
+      <circle cx="190" cy="60" r="70" fill={color} fillOpacity="0.07" />
+      <circle cx="20" cy="230" r="55" fill={color} fillOpacity="0.05" />
+      <circle cx="195" cy="560" r="65" fill={color} fillOpacity="0.06" />
+      <circle cx="30" cy="800" r="50" fill={color} fillOpacity="0.05" />
+    </svg>
+  );
+}
+
+// Bandeau de section sidebar (pleine largeur, fond coloré, texte blanc centré)
+function HermineSectionBanner({ label, color }: { label: string; color: string }) {
+  return (
+    <div style={{ backgroundColor: color, width: '100%', padding: '4px 0', textAlign: 'center', marginBottom: 8 }}>
+      <span style={{ fontSize: 8, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>{label}</span>
+    </div>
+  );
+}
+
+// En-tête de section zone principale (grand cercle coloré + texte + ligne)
+function HermineMainSection({ label, color }: { label: string; color: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+      <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
+      <span style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.5, color: color }}>{label}</span>
+      <div style={{ flex: 1, height: 1.5, backgroundColor: color, opacity: 0.35 }} />
+    </div>
   );
 }
 
 function HermineLayout({ tpl, content, textPrimary, textSec, showWatermark }: any) {
   const { personalInfo: p, experiences, educations, skills, languages, customSections } = content;
-  const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Votre Nom';
-  const contacts = [
-    { type: 'phone', value: p.phone },
-    { type: 'email', value: p.email },
-    { type: 'address', value: p.address },
-    { type: 'website', value: p.website },
-    { type: 'linkedin', value: p.linkedin },
-  ].filter(c => c.value);
-
-  const sidebarBg = tpl.primaryColor;
-  const accent = tpl.accentColor;
+  const accent = tpl.primaryColor; // UNE seule couleur primaire pour tout, comme le PDF violet
   const isSerif = tpl.fontFamily === 'font-serif';
   const fontStack = isSerif ? 'Georgia, "Times New Roman", serif' : 'Inter, Arial, sans-serif';
 
-  // Séparer prénom / nom pour l'affichage Hermine (nom EN MAJUSCULES, prénom normal)
-  const lastName = (p.lastName || '').toUpperCase() || 'NOM';
-  const firstName = p.firstName || 'Prénom';
+  const lastName  = (p.lastName  || 'NOM').toUpperCase();
+  const firstName = p.firstName  || 'Prénom';
+
+  const contacts = [
+    { type: 'phone',    value: p.phone    },
+    { type: 'email',    value: p.email    },
+    { type: 'address',  value: p.address  },
+    { type: 'linkedin', value: p.linkedin },
+    { type: 'website',  value: p.website  },
+  ].filter(c => c.value);
 
   return (
-    <div style={{ backgroundColor: tpl.bgColor, minHeight: '100%', display: 'flex', fontFamily: fontStack, position: 'relative' }}>
+    <div style={{ backgroundColor: '#FFFFFF', minHeight: '100%', fontFamily: fontStack, position: 'relative', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── SIDEBAR ── */}
-      <div style={{ width: '32%', minHeight: '100%', backgroundColor: sidebarBg, padding: '28px 14px 24px', display: 'flex', flexDirection: 'column', gap: 16, position: 'relative', overflow: 'hidden' }}>
-        <HermineSidebarBg shape={tpl.sidebarShape} color={sidebarBg} />
+      {/* ══ EN-TÊTE PLEINE LARGEUR ══ */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', padding: '24px 22px 16px 22px', borderBottom: `2px solid ${hexAlpha(accent, '25')}`, gap: 18 }}>
 
-        {/* Photo */}
-        <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-          <div style={{ width: 86, height: 86, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.5)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-            {content.profilePhoto
-              ? <img src={content.profilePhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)', fontSize: 30, fontWeight: 800, color: '#FFF' }}>
-                  {(p.firstName || 'N')[0]}
-                </div>
-            }
-          </div>
+        {/* Photo cercle avec bordure couleur */}
+        <div style={{ flexShrink: 0, width: 90, height: 90, borderRadius: '50%', border: `3px solid ${accent}`, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
+          {content.profilePhoto
+            ? <img src={content.profilePhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: hexAlpha(accent, '15'), fontSize: 34, fontWeight: 900, color: accent }}>
+                {(p.firstName || 'N')[0]}
+              </div>
+          }
         </div>
 
-        {/* Profil */}
-        {p.summary && (
-          <div style={{ position: 'relative' }}>
-            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
-              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Profil</span>
-            </div>
-            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, margin: 0 }}>{p.summary}</p>
-          </div>
-        )}
-
-        {/* Langues — points comme Hermine */}
-        {languages.length > 0 && (
-          <div style={{ position: 'relative' }}>
-            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
-              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Langues</span>
-            </div>
-            {languages.map((l: any) => {
-              const filled = Math.round((parseFloat(langLevelWidth[l.level] ?? '50%') / 100) * 5);
-              return (
-                <div key={l.id} style={{ marginBottom: 7 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 9.5, fontWeight: 600, color: '#FFF' }}>{l.name}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: i < filled ? '#FFF' : 'rgba(255,255,255,0.25)' }} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Loisirs / Qualités depuis customSections ou compétences */}
-        {skills.length > 0 && (
-          <div style={{ position: 'relative' }}>
-            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
-              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Qualités</span>
-            </div>
-            {skills.slice(0, 6).map((sk: any) => (
-              <div key={sk.id} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
-                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)' }}>{sk.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Contacts */}
-        {contacts.length > 0 && (
-          <div style={{ position: 'relative', marginTop: 'auto' }}>
-            <div style={{ backgroundColor: accent, borderRadius: 4, padding: '3px 8px', marginBottom: 8, display: 'inline-block' }}>
-              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 2 }}>Contacts</span>
-            </div>
-            {contacts.map(c => <ContactItem key={c.type} type={c.type} value={c.value} color="rgba(255,255,255,0.8)" size={8.5} />)}
-          </div>
-        )}
+        {/* Bloc nom / date / titre */}
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: accent, letterSpacing: 0.5, lineHeight: 1.05 }}>{lastName}</div>
+          <div style={{ fontSize: 15, fontWeight: 400, color: accent, fontStyle: 'italic', marginTop: 2 }}>{firstName}</div>
+          {p.dateOfBirth && (
+            <div style={{ fontSize: 8.5, color: textSec, fontStyle: 'italic', marginTop: 3 }}>Né(e) le {p.dateOfBirth}</div>
+          )}
+          <div style={{ width: '100%', height: 1, backgroundColor: hexAlpha(accent, '35'), margin: '8px 0' }} />
+          {p.title && (
+            <div style={{ fontSize: 9, color: '#444', lineHeight: 1.5 }}>{p.title}</div>
+          )}
+        </div>
       </div>
 
-      {/* ── ZONE PRINCIPALE ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* ══ CORPS : sidebar gauche + zone principale ══ */}
+      <div style={{ display: 'flex', flex: 1 }}>
 
-        {/* Header Hermine : grand nom + séparateur + titre */}
-        <div style={{ padding: '28px 22px 16px', borderBottom: `2px solid ${hexAlpha(accent, '30')}` }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: tpl.primaryColor, letterSpacing: 0.5, lineHeight: 1.1 }}>
-            {lastName}
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 400, color: tpl.primaryColor, letterSpacing: 0.5, marginTop: 2 }}>
-            {firstName}
-          </div>
-          {p.dateOfBirth && (
-            <div style={{ fontSize: 8.5, color: textSec, marginTop: 3, fontStyle: 'italic' }}>Né(e) le {p.dateOfBirth}</div>
+        {/* ── SIDEBAR ── fond blanc, bandeaux colorés, formes décoratives subtiles */}
+        <div style={{ width: '30%', minHeight: '100%', borderRight: `1px solid ${hexAlpha(accent, '15')}`, padding: '14px 12px 20px', display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', overflow: 'hidden' }}>
+          <HermineSidebarDecor shape={tpl.sidebarShape} color={accent} />
+
+          {/* PROFIL */}
+          {p.summary && (
+            <div style={{ position: 'relative' }}>
+              <HermineSectionBanner label="Profil" color={accent} />
+              <p style={{ fontSize: 8.5, color: '#444', lineHeight: 1.65, margin: 0 }}>{p.summary}</p>
+            </div>
           )}
-          <div style={{ width: '100%', height: 1, backgroundColor: hexAlpha(accent, '40'), margin: '8px 0' }} />
-          {p.title && (
-            <div style={{ fontSize: 9.5, color: textSec, lineHeight: 1.4 }}>{p.title}</div>
-          )}
-        </div>
 
-        <div style={{ flex: 1, padding: '14px 22px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-          {/* Éducation — timeline avec cercles comme Hermine */}
-          {educations.length > 0 && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>Éducation</span>
-                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
-              </div>
-              {educations.map((edu: any) => (
-                <div key={edu.id} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', border: `2px solid ${accent}`, backgroundColor: '#FFF', marginTop: 3 }} />
-                    <div style={{ width: 1, flex: 1, backgroundColor: hexAlpha(accent, '30'), marginTop: 2 }} />
-                  </div>
-                  <div style={{ flex: 1, paddingBottom: 4 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                      <span style={{ fontSize: 9.5, fontWeight: 800, color: textPrimary }}>{edu.degree}{edu.field ? ` – ${edu.field}` : ''}</span>
-                      <span style={{ fontSize: 8, color: accent, fontWeight: 700 }}>
-                        {edu.startDate && edu.endDate ? `${edu.startDate}-${edu.endDate.slice(-2)}` : edu.startDate || edu.endDate || ''}
-                      </span>
+          {/* LANGUES — points remplis / vides */}
+          {languages.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <HermineSectionBanner label="Langues" color={accent} />
+              {languages.map((l: any) => {
+                const filled = Math.round((parseFloat(langLevelWidth[l.level] ?? '50%') / 100) * 5);
+                return (
+                  <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: '#222' }}>{l.name}</span>
+                    <div style={{ display: 'flex', gap: 3 }}>
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: i < filled ? accent : hexAlpha(accent, '25') }} />
+                      ))}
                     </div>
-                    <div style={{ fontSize: 8.5, color: textSec, fontStyle: 'italic', marginTop: 1 }}>{edu.institution}{edu.location ? `, ${edu.location}` : ''}</div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* LOISIRS — icônes texte comme le PDF */}
+          {customSections.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <HermineSectionBanner label="Loisirs" color={accent} />
+              {customSections.slice(0, 1).map((cs: any) =>
+                cs.content.split('\n').filter(Boolean).map((item: string, i: number) => (
+                  <div key={i} style={{ fontSize: 9, color: '#333', marginBottom: 4, paddingLeft: 4 }}>▸ {item}</div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* QUALITÉS — liste à puces couleur */}
+          {skills.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <HermineSectionBanner label="Qualités" color={accent} />
+              {skills.slice(0, 8).map((sk: any) => (
+                <div key={sk.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 3 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: accent, flexShrink: 0, marginTop: 2 }} />
+                  <span style={{ fontSize: 8.5, color: '#333', lineHeight: 1.4 }}>{sk.name}</span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Compétences — grille 2 colonnes avec titres de catégories */}
+          {/* CONTACTS */}
+          {contacts.length > 0 && (
+            <div style={{ position: 'relative', marginTop: 'auto' }}>
+              <HermineSectionBanner label="Contacts" color={accent} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {contacts.map(c => <ContactItem key={c.type} type={c.type} value={c.value} color="#333" size={8} />)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── ZONE PRINCIPALE ── */}
+        <div style={{ flex: 1, padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* ÉDUCATION — timeline avec date à gauche, cercle, diplôme, institution italique */}
+          {educations.length > 0 && (
+            <div>
+              <HermineMainSection label="Éducation" color={accent} />
+              {educations.map((edu: any) => {
+                const dateStr = [edu.startDate, edu.endDate].filter(Boolean).join('-');
+                return (
+                  <div key={edu.id} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    {/* Date badge + trait vertical */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 38 }}>
+                      <span style={{ fontSize: 7.5, fontWeight: 800, color: accent, textAlign: 'right', width: '100%' }}>{dateStr}</span>
+                      <div style={{ width: 1, flex: 1, backgroundColor: hexAlpha(accent, '30'), marginTop: 2 }} />
+                    </div>
+                    {/* Cercle timeline */}
+                    <div style={{ flexShrink: 0, width: 10, height: 10, borderRadius: '50%', border: `2px solid ${accent}`, backgroundColor: '#FFF', marginTop: 2 }} />
+                    {/* Contenu */}
+                    <div style={{ flex: 1, paddingBottom: 2 }}>
+                      <div style={{ fontSize: 9.5, fontWeight: 700, color: '#1A1A1A' }}>{edu.degree}{edu.field ? ` – ${edu.field}` : ''}</div>
+                      <div style={{ fontSize: 8.5, color: textSec, fontStyle: 'italic', marginTop: 1 }}>{edu.institution}{edu.location ? `, ${edu.location}` : ''}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* COMPÉTENCES — tableau 3 colonnes avec bandeaux comme le PDF */}
           {skills.length > 0 && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>Compétences</span>
-                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
-              </div>
-              {/* Regroupe par catégorie si disponible */}
+              <HermineMainSection label="Compétences" color={accent} />
               {(() => {
                 const cats: Record<string, string[]> = {};
                 skills.forEach((sk: any) => {
@@ -1362,17 +1379,19 @@ function HermineLayout({ tpl, content, textPrimary, textSec, showWatermark }: an
                   cats[cat].push(sk.name);
                 });
                 const entries = Object.entries(cats);
+                const cols = entries.length >= 3 ? 3 : entries.length >= 2 ? 2 : 1;
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: entries.length >= 3 ? '1fr 1fr 1fr' : '1fr 1fr', gap: '0 10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: Array(cols).fill('1fr').join(' '), gap: '0 8px' }}>
                     {entries.map(([cat, items]) => (
                       <div key={cat}>
-                        <div style={{ backgroundColor: accent, padding: '2px 6px', borderRadius: 3, marginBottom: 5, textAlign: 'center' }}>
-                          <span style={{ fontSize: 7.5, fontWeight: 700, color: '#FFF' }}>{cat}</span>
+                        {/* Bandeau catégorie */}
+                        <div style={{ backgroundColor: accent, padding: '3px 0', textAlign: 'center', marginBottom: 6 }}>
+                          <span style={{ fontSize: 7.5, fontWeight: 700, color: '#FFF', textTransform: 'capitalize' }}>{cat}</span>
                         </div>
                         {items.map((item, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                            <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
-                            <span style={{ fontSize: 8.5, color: textSec }}>{item}</span>
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 3 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: accent, flexShrink: 0, marginTop: 2 }} />
+                            <span style={{ fontSize: 8, color: '#444', lineHeight: 1.4 }}>{item}</span>
                           </div>
                         ))}
                       </div>
@@ -1383,49 +1402,48 @@ function HermineLayout({ tpl, content, textPrimary, textSec, showWatermark }: an
             </div>
           )}
 
-          {/* Expériences — badges date comme Hermine */}
+          {/* EXPÉRIENCE PROFESSIONNELLE — badge date arrondi + titre + entreprise italique + puces */}
           {experiences.length > 0 && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>Expérience Professionnelle</span>
-                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
-              </div>
-              {experiences.map((exp: any) => (
-                <div key={exp.id} style={{ marginBottom: 12, backgroundColor: hexAlpha(accent, '08'), borderRadius: 6, padding: '8px 10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-                    <span style={{ backgroundColor: accent, color: '#FFF', fontSize: 7.5, fontWeight: 800, padding: '2px 8px', borderRadius: 20 }}>
-                      {exp.startDate}{exp.startDate && (exp.current ? ' – Présent' : exp.endDate ? ` – ${exp.endDate}` : '')}
-                    </span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: textPrimary }}>{exp.position}</span>
-                  </div>
-                  <div style={{ fontSize: 9, color: accent, fontStyle: 'italic', marginBottom: 3 }}>
-                    {exp.company}{exp.location ? ` – ${exp.location}` : ''}
-                  </div>
-                  {exp.description && (
-                    <div style={{ fontSize: 8.5, color: textSec, lineHeight: 1.55 }}>
-                      {exp.description.split('\n').filter(Boolean).map((line: string, i: number) => (
-                        <div key={i} style={{ display: 'flex', gap: 5, marginBottom: 2 }}>
-                          <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: accent, flexShrink: 0, marginTop: 3 }} />
-                          <span>{line}</span>
-                        </div>
-                      ))}
+              <HermineMainSection label="Expérience Professionnelle" color={accent} />
+              {experiences.map((exp: any) => {
+                const dateStr = exp.startDate
+                  ? exp.current ? `${exp.startDate} – Présent` : exp.endDate ? `${exp.startDate} – ${exp.endDate}` : exp.startDate
+                  : '';
+                return (
+                  <div key={exp.id} style={{ marginBottom: 12, backgroundColor: hexAlpha(accent, '06'), borderRadius: 5, padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                      {dateStr && (
+                        <span style={{ backgroundColor: accent, color: '#FFF', fontSize: 7.5, fontWeight: 800, padding: '2px 10px', borderRadius: 20 }}>
+                          {dateStr}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#1A1A1A' }}>{exp.position}</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    <div style={{ fontSize: 8.5, color: accent, fontStyle: 'italic', marginBottom: 4 }}>
+                      {exp.company}{exp.location ? ` – ${exp.location}` : ''}
+                    </div>
+                    {exp.description && (
+                      <div style={{ fontSize: 8.5, color: '#555', lineHeight: 1.6 }}>
+                        {exp.description.split('\n').filter(Boolean).map((line: string, i: number) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 2 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: accent, flexShrink: 0, marginTop: 3 }} />
+                            <span>{line}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {/* Sections personnalisées */}
-          {customSections.map((cs: any) => (
+          {/* Sections personnalisées supplémentaires */}
+          {customSections.slice(1).map((cs: any) => (
             <div key={cs.id}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: accent }} />
-                <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, color: textPrimary }}>{cs.title}</span>
-                <div style={{ flex: 1, height: 1, backgroundColor: hexAlpha(accent, '30') }} />
-              </div>
-              <p style={{ fontSize: 9.5, color: textSec, lineHeight: 1.65 }}>{cs.content}</p>
+              <HermineMainSection label={cs.title} color={accent} />
+              <p style={{ fontSize: 9, color: textSec, lineHeight: 1.65, margin: 0 }}>{cs.content}</p>
             </div>
           ))}
         </div>
