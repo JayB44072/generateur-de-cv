@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Crown, Sparkles, ChevronRight, Smartphone, CreditCard, Globe, Check, AlertCircle, Lock } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { X, Crown, Sparkles, ChevronRight, Globe, Check, AlertCircle, Lock, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LanguageContext';
 import { Subscription } from '../lib/supabase';
@@ -28,8 +28,8 @@ const METHODS: { key: PaymentMethod; label: string; logo: string; color: string;
 ];
 
 const COUNTRY_CODES = [
-  { flag: '🇧🇫', code: '+226', name: 'Burkina Faso', digits: 8 },
   { flag: '🇨🇲', code: '+237', name: 'Cameroun',     digits: 9 },
+  { flag: '🇧🇫', code: '+226', name: 'Burkina Faso', digits: 8 },
   { flag: '🇸🇳', code: '+221', name: 'Sénégal',       digits: 9 },
   { flag: '🇨🇮', code: '+225', name: "Côte d'Ivoire", digits: 10 },
   { flag: '🇲🇱', code: '+223', name: 'Mali',           digits: 8 },
@@ -348,7 +348,7 @@ export default function PaymentModal({ tier, onClose, onAuthOpen, onSuccess }: P
 
   // Mobile money fields
   const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('+226');
+  const [countryCode, setCountryCode] = useState('+237');
   // PayPal fields
   const [ppEmail, setPpEmail] = useState('');
   // Card fields

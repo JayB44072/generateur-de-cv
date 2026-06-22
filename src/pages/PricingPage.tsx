@@ -219,6 +219,7 @@ export default function PricingPage({ onNavigate, onAuthOpen }: PricingPageProps
                   { fr: 'Sections personnalisées', en: 'Custom sections', free: false, premium: true, ai: true },
                   { fr: 'Amélioration IA des textes', en: 'AI text enhancement', free: false, premium: false, ai: true },
                   { fr: 'Générateur de compétences IA', en: 'AI skills generator', free: false, premium: false, ai: true },
+                  { fr: '🌍 Traduction CV (12 langues)', en: '🌍 CV translation (12 languages)', free: false, premium: false, ai: true },
                   { fr: 'Support prioritaire', en: 'Priority support', free: false, premium: true, ai: true },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">

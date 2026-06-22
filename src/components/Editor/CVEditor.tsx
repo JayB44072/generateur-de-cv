@@ -9,6 +9,7 @@ import PaywallModal, { PaywallReason } from '../PaywallModal';
 import { PersonalStep, ExperienceStep, EducationStep, SkillsStep, LanguagesStep, CustomSectionsStep } from './FormSteps';
 import { downloadCVAsPDF } from '../../lib/downloadCV';
 import AIDesignAssistant from '../AIDesignAssistant';
+import CVTranslator from '../CVTranslator';
 type Step = 'personal' | 'experience' | 'education' | 'skills' | 'languages';
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 type MobileTab = 'edit' | 'preview';
@@ -155,6 +156,10 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const handleDownload = async () => {
+    if (!user) {
+      onAuthOpen();
+      return;
+    }
     if (!canDownload()) {
       setPaywall({ open: true, reason: 'download_premium' });
       return;
@@ -352,6 +357,7 @@ export default function CVEditor({ initialTemplateId = 1, editCvId, forceNew = f
             className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
             <ZoomIn size={14} />
           </button>
+          <CVTranslator content={content} onApply={(translated) => setContent(translated)} />
           <button onClick={handleDownload}
             disabled={downloading}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition-colors">
